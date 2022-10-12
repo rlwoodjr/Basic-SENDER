@@ -1,4 +1,5 @@
 
+v.0.0.48: fix jog distance bug for custom jog sizes, turn A axis off by default.
 v.0.0.47: Add Z safe to surface and roudning wizards
 v.0.0.46: Change flash order
 v.0.0.45: Add Quantum flash files

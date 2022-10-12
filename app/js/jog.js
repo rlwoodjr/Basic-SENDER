@@ -40,6 +40,12 @@ function mmMode() {
   $('#dist10label').html(jogDistMmm)
   $('#dist100label').html(jogDistLmm)
   jogdist=jogDistMmm
+  $('.distbtn').removeClass('bd-openbuilds')
+  $('#dist10').addClass('bd-openbuilds')
+  $('.jogdist').removeClass('fg-openbuilds')
+  $('.jogdist').addClass('fg-gray')
+  $('#dist10label').removeClass('fg-gray')
+  $('#dist10label').addClass('fg-openbuilds')
 
   if (typeof object !== 'undefined') {
     if (object.userData.inch) {
@@ -66,6 +72,12 @@ function inMode() {
   $('#dist10label').html(jogDistMin)
   $('#dist100label').html(jogDistLin)
   jogdist=jogDistMin*25.4
+  $('.distbtn').removeClass('bd-openbuilds')
+  $('#dist10').addClass('bd-openbuilds')
+  $('.jogdist').removeClass('fg-openbuilds')
+  $('.jogdist').addClass('fg-gray')
+  $('#dist10label').removeClass('fg-gray')
+  $('#dist10label').addClass('fg-openbuilds')
 
   if (typeof object !== 'undefined') {
     if (object.userData.inch) {
@@ -829,30 +841,6 @@ $('.aP').on('touchend mouseup', function(ev) {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   $('#homeBtn').on('click', function(ev) {
     home();
   })
@@ -1111,13 +1099,15 @@ function setJogTmm() {
   var distclass = $('#dist01label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist01label').text());
-}
+  jogDistTmm = parseFloat($('#dist100label').text());
+  }
 function setJogSmm() {
   localStorage.setItem('mmSmallJog',$('#setSmallJogmm').val())
   $('#dist1label').html($('#setSmallJogmm').val())
   var distclass = $('#dist1label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist1label').text());
+  jogDistSmm = parseFloat($('#dist100label').text());
 }
 function setJogMmm() {
   localStorage.setItem('mmMediumJog',$('#setMediumJogmm').val())
@@ -1125,6 +1115,7 @@ function setJogMmm() {
   var distclass = $('#dist10label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist10label').text());
+  jogDistMmm = parseFloat($('#dist100label').text());
 }
 function setJogLmm() {
   localStorage.setItem('mmLargeJog',$('#setLargeJogmm').val())
@@ -1132,6 +1123,7 @@ function setJogLmm() {
   var distclass = $('#dist100label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist100label').text());
+  jogDistLmm = parseFloat($('#dist100label').text());
 }
 
 
@@ -1142,6 +1134,7 @@ function setJogTin() {
   var distclass = $('#dist01label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist01label').text())*25.4;
+  jogDistTin = parseFloat($('#dist100label').text());
 }
 function setJogSin() {
   localStorage.setItem('inSmallJog',$('#setSmallJogin').val())
@@ -1149,6 +1142,7 @@ function setJogSin() {
   var distclass = $('#dist1label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist11label').text())*25.4;
+  jogDistSin = parseFloat($('#dist100label').text());
 }
 function setJogMin() {
   localStorage.setItem('inMediumJog',$('#setMediumJogin').val())
@@ -1156,6 +1150,7 @@ function setJogMin() {
   var distclass = $('#dist10label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist10label').text())*25.4;
+  jogDistMin = parseFloat($('#dist100label').text());
 }
 
 function setJogLin() {
@@ -1164,6 +1159,7 @@ function setJogLin() {
   var distclass = $('#dist100label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist100label').text())*25.4;
+  jogDistLin = parseFloat($('#dist100label').text());
 }
 
 

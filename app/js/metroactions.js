@@ -54,12 +54,14 @@ if (X!='false'){
     $('#ZAxisDisplay').prop('checked',false) 
   }
   
-  if (A!='false'){
+  if (A!='true'){
+    $('#AAxisDisplay').prop('checked',false) 
+  }else if (A!='false'){
     $('#AAxisDisplay').prop('checked',true) 
   }else{
-    $('#AAxisDisplay').prop('checked',false) 
-  }
-  
+  $('#AAxisDisplay').prop('checked',false) 
+}
+
 
 
   
