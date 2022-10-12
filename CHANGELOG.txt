@@ -1,3 +1,5 @@
+
+v.0.0.47: Add Z safe to surface and roudning wizards
 v.0.0.46: Change flash order
 v.0.0.45: Add Quantum flash files
 v.0.0.40: Open when you start app

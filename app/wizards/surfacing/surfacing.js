@@ -11,6 +11,8 @@ function populateSurfaceToolForm() {
       surfaceX: 200,
       surfaceY: 300,
       surfaceDepth: 3,
+      surfaceRPM: 1000,
+      surfaceZSafe: 10,
     };
   }
   $("#surfaceDiameter").val(data.surfaceDiameter);
@@ -19,6 +21,8 @@ function populateSurfaceToolForm() {
   $("#surfaceX").val(data.surfaceX);
   $("#surfaceY").val(data.surfaceY);
   $("#surfaceDepth").val(data.surfaceDepth);
+  $("#surfaceRPM").val(data.surfaceRPM);
+  $("#surfaceZSafe").val(data.surfaceZSafe);
   var $radios = $("input:radio[name=surfaceType]");
   $radios.filter("[value=" + data.surfaceType + "]").prop("checked", true);
   Metro.dialog.open("#surfacingDialog");
@@ -33,7 +37,8 @@ function createSurfaceGcode() {
     surfaceY: $("#surfaceY").val(),
     surfaceDepth: $("#surfaceDepth").val(),
     surfaceType: $("input[name='surfaceType']:checked").val(),
-    surfaceRPM: $('#surfaceRPM').val()
+    surfaceRPM: $('#surfaceRPM').val(),
+    surfaceZSafe: $('#surfaceZSafe').val(),
   };
   console.log(data);
   localStorage.setItem("lastSurfacingTool", JSON.stringify(data));
@@ -68,7 +73,7 @@ G21; mm-mode
 G90; Absolute Positioning
 M3 S` + data.surfaceRPM + `; Spindle On
 G4 P1.8 ; Wait for spindle to come up to speed
-G0 Z10
+G0 Z` + data.surfaceZSafe + `
 G0 X0 Y0
 G1 F` +
     data.surfaceFeedrate + `\n`;
@@ -81,7 +86,7 @@ G1 F` +
       startpointX +
       ` Y` +
       startpointY +
-      ` Z10\n
+      ` Z` + data.surfaceZSafe + `\n
 G1 X` +
       startpointX +
       ` Y` +
@@ -95,7 +100,7 @@ G1 X` +
       endpointX +
       ` Y` +
       startpointY +
-      ` Z10\n
+      ` Z` + data.surfaceZSafe + `\n
 G1 X` +
       endpointX +
       ` Y` +
@@ -131,18 +136,18 @@ G1 X` +
     reverse = false;
   }
 
-  gcode += `G0 Z10\n`;
+  gcode += `G0 Z` + data.surfaceZSafe + `\n`;
 
   // Framing Pass
   gcode += `; Framing pass\n`;
-  gcode += `G0 X` + startpointX + ` Y` + startpointY + `Z10\n`; // position at start point
+  gcode += `G0 X` + startpointX + ` Y` + startpointY + `Z` + data.surfaceZSafe + `\n`; // position at start point
   gcode += `G1 Z-` + data.surfaceDepth + `\n`; // plunge
   gcode += `G1 X` + startpointX + ` Y` + endpointY + `Z-` + data.surfaceDepth + `\n`; // Cut side
-  gcode += `G0 Z10\n`;
+  gcode += `G0 Z` + data.surfaceZSafe + `\n`;
   gcode += `G0 X` + endpointX + ` Y` + endpointY + `\n`; // position at start point
   gcode += `G1 Z-` + data.surfaceDepth + `\n`; // plunge
   gcode += `G1 X` + endpointX + ` Y` + startpointY + `Z-` + data.surfaceDepth + `\n`; // Cut side
-  gcode += `G0 Z10\n`;
+  gcode += `G0 Z` + data.surfaceZSafe + `\n`;
   gcode += `G0 X0 Y0\n`;
 
 
@@ -173,6 +178,7 @@ function populateRoundingToolForm() {
       roundingStartA: 165,
       roundingFinishA: 150,
       roundingDepth: 3,
+      roundingZSafe: 10,
     };
   }
   $("#roundDiameter").val(data.roundingDiameter);
@@ -182,6 +188,7 @@ function populateRoundingToolForm() {
   $("#roundStartA").val(data.roundingStartA);
   $("#roundFinishA").val(data.roundingFinishA);
   $("#roundDepth").val(data.roundingDepth);
+  $("#roundZSafe").val(data.roundingZSafe);
   var $radios = $("input:radio[name=surfaceType]");
   $radios.filter("[value=" + data.surfaceType + "]").prop("checked", true);
   Metro.dialog.open("#roundingDialog");
@@ -197,6 +204,7 @@ function createRoundingGcode() {
     roundingStartA: $("#roundStartA").val(),
     roundingFinishA: $("#roundFinishA").val(),
     roundingDepth: $("#roundDepth").val(),
+    roundingZSafe: $("#roundZSafe").val(),
 
   };
   //console.log(data);
@@ -211,7 +219,7 @@ function createRoundingGcode() {
   var Xvalue=parseFloat(data.roundingX)
   var FinishRadius=parseFloat(data.roundingFinishA)/2.0
   var FR= parseFloat(data.roundingFeedrate)
-
+  var ZSafe=parseFloat(data.roundingZSafe)
 
   //console.log(data);
   var gcode =
@@ -219,7 +227,7 @@ function createRoundingGcode() {
 ; Endmill Diameter: ` +  data.roundingDiameter +`mm
 ; Stepover: ` + data.roundingStepover + `%
 ; Feedrate: ` + data.roundingFeedrate + `mm/min
-; X: ` +  data.roundingX + `
+; X Length: ` +  data.roundingX + `
 ; Start Diameter: ` + data.roundingStartA + `mm
 ; Project Diameter: ` + data.roundingFinishA +`mm
 
@@ -229,7 +237,7 @@ G90; Absolute Positioning
 M3 S1000 ;Spindle On
 G4 P1.8 ; Wait for spindle to come up to speed\n`
 
-  gcode +=`G0 Z` + (passRadius+5) + `\n`
+  gcode +=`G0 Z` + (passRadius+ZSafe) + `\n`
   gcode += `G0 X0 A0\n`
   gcode +=`G0 Z`+ (passRadius+1) +`\n` 
 
@@ -237,7 +245,7 @@ G4 P1.8 ; Wait for spindle to come up to speed\n`
     gcode +=`G1 Z`+ (passRadius-passDepth*(i+1)) + ` F`+ FR +`\n`;
     gcode += 'G1 X' + Xvalue + ` A` + rotationCount*360 + `\n`;
     gcode += `G92 A0 ; reset A0\n`
-    gcode += `G0 Z` + (passRadius+5) + `A0\n`
+    gcode += `G0 Z` + (passRadius+ZSafe) + ` A0\n`
     gcode += 'G0 X0\n'
     gcode += `G0 Z`+ (passRadius+1) +`\n`
 
@@ -247,11 +255,11 @@ G4 P1.8 ; Wait for spindle to come up to speed\n`
       gcode +=`G1 Z`+ (FinishRadius).toFixed(4) + ` F`+ FR +`\n`;
       gcode += 'G1 X' + Xvalue + ` A` + rotationCount*360 + `\n`;
       gcode += `G92 A0 ; reset A0\n`
-      gcode += `G0 Z` + (passRadius+5) + `A0\n`
+      gcode += `G0 Z` + (passRadius+ZSafe) + ` A0\n`
       gcode += 'G0 X0\n'
   }
 
-  gcode += `G0 Z`+ (passRadius+5).toFixed(4) +`\n`;
+  gcode += `G0 Z`+ (passRadius+ZSafe).toFixed(4) +`\n`;
   gcode += `G0 X0 A0\n`;
   gcode += `M5 S0\n`;
 
