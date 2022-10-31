@@ -1099,7 +1099,7 @@ function setJogTmm() {
   var distclass = $('#dist01label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist01label').text());
-  jogDistTmm = parseFloat($('#dist100label').text());
+  jogDistTmm = parseFloat($('#dist01label').text());
   }
 function setJogSmm() {
   localStorage.setItem('mmSmallJog',$('#setSmallJogmm').val())
@@ -1107,7 +1107,7 @@ function setJogSmm() {
   var distclass = $('#dist1label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist1label').text());
-  jogDistSmm = parseFloat($('#dist100label').text());
+  jogDistSmm = parseFloat($('#dist1label').text());
 }
 function setJogMmm() {
   localStorage.setItem('mmMediumJog',$('#setMediumJogmm').val())
@@ -1115,7 +1115,7 @@ function setJogMmm() {
   var distclass = $('#dist10label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist10label').text());
-  jogDistMmm = parseFloat($('#dist100label').text());
+  jogDistMmm = parseFloat($('#dist10label').text());
 }
 function setJogLmm() {
   localStorage.setItem('mmLargeJog',$('#setLargeJogmm').val())
@@ -1134,15 +1134,15 @@ function setJogTin() {
   var distclass = $('#dist01label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist01label').text())*25.4;
-  jogDistTin = parseFloat($('#dist100label').text());
+  jogDistTin = parseFloat($('#dist01label').text());
 }
 function setJogSin() {
   localStorage.setItem('inSmallJog',$('#setSmallJogin').val())
   $('#dist1label').html($('#setSmallJogin').val());
   var distclass = $('#dist1label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
-  if(classtext) jogdist=parseFloat($('#dist11label').text())*25.4;
-  jogDistSin = parseFloat($('#dist100label').text());
+  if(classtext) jogdist=parseFloat($('#dist1label').text())*25.4;
+  jogDistSin = parseFloat($('#dist1label').text());
 }
 function setJogMin() {
   localStorage.setItem('inMediumJog',$('#setMediumJogin').val())
@@ -1150,7 +1150,7 @@ function setJogMin() {
   var distclass = $('#dist10label').attr("class");
   var classtext=distclass.includes("fg-openbuilds");
   if(classtext) jogdist=parseFloat($('#dist10label').text())*25.4;
-  jogDistMin = parseFloat($('#dist100label').text());
+  jogDistMin = parseFloat($('#dist10label').text());
 }
 
 function setJogLin() {
