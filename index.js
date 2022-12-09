@@ -738,12 +738,26 @@ io.on("connection", function(socket) {
   });
 
   socket.on("maximize", function(data) {
+    if (jogWindow.isFullScreen()) {
+      jogWindow.setFullScreen(false);
+    }
     if (jogWindow.isMaximized()) {
       jogWindow.unmaximize();
     } else {
       jogWindow.maximize();
     }
   });
+
+  socket.on("fullscreen", function(data) {
+    if (jogWindow.isFullScreen()) {
+      jogWindow.setFullScreen(false);
+    } else {
+      jogWindow.setFullScreen(true);
+    }
+  });
+
+
+
 
   socket.on("quit", function(data) {
     if (appIcon) {
@@ -769,13 +783,12 @@ io.on("connection", function(socket) {
   socket.on("flashGrbl", function(data) {
 
     var port = data.port;
-    var file = data.file;
     var board = data.board
     var customImg = data.customImg
     if (customImg) {
       var firmwarePath = firmwareImagePath
     } else {
-      var firmwarePath = path.join(__dirname, file)
+      var firmwarePath = path.join(__dirname, data.file)
     }
 
     const Avrgirl = require('avrgirl-arduino');

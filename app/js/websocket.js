@@ -531,11 +531,12 @@ function initSocket() {
     // if (!_.isEqual(status, laststatus)) {
     if (laststatus !== undefined) {
 
-      if (!_.isEqual(status.machine.position.offset, laststatus.machine.position.offset) || machineCoordinateSpace == false) {
-        drawMachineCoordinates(status);
+      if (!isJogWidget) {
+        if (!_.isEqual(status.machine.position.offset, laststatus.machine.position.offset) || machineCoordinateSpace == false) {
+          drawMachineCoordinates(status);
+        }
       }
       
-
 
       if (!_.isEqual(status.comms.interfaces.ports, laststatus.comms.interfaces.ports)) {
         var string = "Detected a change in available ports: ";
