@@ -14,7 +14,7 @@
     "avrgirl-arduino": "^4.2.3",
     "detect-rpi": "^1.4.0",
     "directory-tree": "^2.2.4",
-    "drivelist": "^11.0.4",
+    "drivelist": "^9.0.0",
     "electron-builder-notarize": "^1.2.0",
     "electron-updater": "^4.3.8",
     "express": "^4.17.1",
