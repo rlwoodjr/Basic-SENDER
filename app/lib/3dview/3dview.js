@@ -18,7 +18,7 @@ function convertParsedDataToObject(jsonData) {
 
   // save projectdiameter 
   localStorage.setItem("projectdiameter",parsedData.Pd)
-  
+
   var geometry = new THREE.BufferGeometry();
 
   var material = new THREE.LineBasicMaterial({
@@ -38,21 +38,21 @@ function convertParsedDataToObject(jsonData) {
     positions.push(x, y, z);
 
     if (parsedData.linePoints[i].g == 0) {
-      colors.push(0);
-      colors.push(200);
-      colors.push(0);
+      colors.push(Theme.lines[0].R);
+      colors.push(Theme.lines[0].G);
+      colors.push(Theme.lines[0].B);
     } else if (parsedData.linePoints[i].g == 1) {
-      colors.push(200);
-      colors.push(0);
-      colors.push(0);
+      colors.push(Theme.lines[1].R);
+      colors.push(Theme.lines[1].G);
+      colors.push(Theme.lines[1].B);
     } else if (parsedData.linePoints[i].g == 2) {
-      colors.push(0);
-      colors.push(0);
-      colors.push(200);
+      colors.push(Theme.lines[2].R);
+      colors.push(Theme.lines[2].G);
+      colors.push(Theme.lines[2].B);
     } else {
-      colors.push(200);
-      colors.push(0);
-      colors.push(200);
+      colors.push(Theme.lines[3].R);
+      colors.push(Theme.lines[3].G);
+      colors.push(Theme.lines[3].B);
     }
 
   }
@@ -191,7 +191,6 @@ function sim() {
   } else {
     if (!disable3Drealtimepos) {
       $("#conetext").show();
-      cone.visible = true
       if (simIdx == 0) {
         var posx = object.userData.linePoints[0].x; //- (sizexmax/2);
         var posy = object.userData.linePoints[0].y; //- (sizeymax/2);
@@ -207,9 +206,9 @@ function sim() {
       cone.position.z = posz;
       cone.material = new THREE.MeshPhongMaterial({
         color: 0x28a745,
-        specular: 0x0000ff,
+        specular: 0x08701f,
         shininess: 100,
-        opacity: 0.9,
+        opacity: 0.6,
         transparent: true
       })
     }
@@ -238,14 +237,14 @@ function sim() {
 }
 
 function runSim() {
-    var posa = object.userData.linePoints[simIdx].a*Math.PI/180;
+  var posa = object.userData.linePoints[simIdx].a*Math.PI/180;  
 
   if (object.userData.inch) {
     var posx = object.userData.linePoints[simIdx].x * 25.4; //- (sizexmax/2);
     var posy = object.userData.linePoints[simIdx].y * 25.4; //- (sizeymax/2);
     var posz = object.userData.linePoints[simIdx].z * 25.4;
-    
-    
+
+
 
   } else {
     var posx = object.userData.linePoints[simIdx].x; //- (sizexmax/2);
@@ -253,9 +252,9 @@ function runSim() {
     var posz = object.userData.linePoints[simIdx].z;
 
   }
-    cone.rotation.x=-posa-Math.PI/2
-    posy = posy + 20*Math.sin(posa);
-    posz = posz + 20*Math.cos(posa);
+  cone.rotation.x=-posa-Math.PI/2
+  posy = posy + 20*Math.sin(posa);
+  posz = posz + 20*Math.cos(posa);
 
 
 
@@ -325,9 +324,45 @@ function simstop() {
   editor.gotoLine(0)
   $("#conetext").hide();
   clearSceneFlag = true;
+  cone.material = new THREE.MeshPhongMaterial({
+    color: 0x0000ff,
+    specular: 0x0000ff,
+    shininess: 100,
+    opacity: 0.6,
+    transparent: true
+  })
 }
 
+function simAnimate() {
+  if (simRunning) {
+    if (cone) {
+      // 160widthx200height offset?
+      if (cone.position) {
+        var conepos = toScreenPosition(cone, camera)
+        var offset = $("#renderArea").offset()
+        var farside = $("#renderArea").offset().left + $("#renderArea").outerWidth()
+        var bottomside = $("#renderArea").outerHeight()
+        // console.log(conepos)
+        // console.log(offset)
+        if (conepos.y < 25) {
+          conepos.y = 25;
+        }
+        if (conepos.y > bottomside - 40) {
+          conepos.y = bottomside - 40;
+        }
+        if (conepos.x < 0) {
+          conepos.x = 0;
+        }
 
+        if (conepos.x > farside - $("#conetext").outerWidth()) {
+          conepos.x = farside - $("#conetext").outerWidth();
+        }
+
+        $("#conetext").css('left', conepos.x + "px").css('top', conepos.y - 20 + "px");
+      }
+    }
+  }
+}
 
 function toScreenPosition(obj, camera) {
   var vector = new THREE.Vector3(obj.position.x, obj.position.y + 10, obj.position.z + 30);
