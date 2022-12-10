@@ -7,7 +7,7 @@
         {
             "name": "Client",
             "request": "launch",
-            "type": "pwa-chrome",
+            "type": "chrome",
             "url": "http://localhost:3000",
           // "url": "http://192.168.1.112:3000/jog",
             "webRoot": "${workspaceFolder}/app"
