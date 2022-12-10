@@ -280,7 +280,7 @@ function checkPowerSettings() {
           debug_log('powercfg /q exited with exit code ' + code);
           setTimeout(function() {
             debug_log(status.driver.powersettings.usbselectiveDC, status.driver.powersettings.usbselectiveAC)
-          }, 100);
+          }, 200);
         })
       }
     });
@@ -303,7 +303,6 @@ var lastCommand = false
 var gcodeQueue = [];
 var queuePointer = 0;
 var statusLoop;
-var frontEndUpdateLoop
 var queueCounter;
 var listPortsLoop;
 
@@ -339,7 +338,6 @@ var status = {
   },
   machine: {
     name: '',
-    has4thAxis: false,
     inputs: [],
     overrides: {
       feedOverride: 100, //
@@ -364,10 +362,9 @@ var status = {
       unitsmode: "G21", // G20, G21
       radiuscomp: "G40", // G40
       tlomode: "G49", // G43.1, G49
-      // programmode: "M0", // M0, M1, M2, M30
+     // programmode: "M0", // M0, M1, M2, M30
       spindlestate: "M5", // M3, M4, M5
-      coolantstate: "M9", // M7, M8, M9
-      homedRecently: false
+      coolantstate: "M9" // M7, M8, M9
       // tool: "0",
       // spindle: "0",
       // feedrate: "0"
@@ -397,7 +394,6 @@ var status = {
     },
     firmware: {
       type: "",
-      platform: "",
       version: "",
       date: "",
       buffer: [],
@@ -414,7 +410,6 @@ var status = {
     paused: false,
     controllerBuffer: 0, // Seems like you are tracking available buffer?  Maybe nice to have in frontend?
     interfaces: {
-      type: "",
       ports: "",
       activePort: "" // or activeIP in the case of wifi/telnet?
     },
@@ -471,6 +466,9 @@ var PortCheckinterval = setInterval(function() {
 }, 1000);
 
 checkPowerSettings()
+// var PowerSettingsInterval = setInterval(function() {
+//   checkPowerSettings()
+// }, 60 * 1000)
 
 
 // JSON API
@@ -490,10 +488,22 @@ app.get('/activate', (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.send('Host: ' + req.hostname + ' asked to activate Basic SENDER v' + require('./package').version);
-  showJogWindow()
+  if (jogWindow === null) {
+    createJogWindow();
+    jogWindow.show()
+  // workaround from https://github.com/electron/electron/issues/2867#issuecomment-261067169 to make window pop over for focus
+    jogWindow.setAlwaysOnTop(true);
+    jogWindow.focus();
+    jogWindow.setAlwaysOnTop(false);
+  } else {
+    jogWindow.show()
+    jogWindow.setAlwaysOnTop(true);
+    jogWindow.focus();
+    jogWindow.setAlwaysOnTop(false);
+  }
   setTimeout(function() {
     io.sockets.emit('activate', req.hostname);
-  }, 500);
+  }, 1500);
 })
 
 // Upload
@@ -579,7 +589,20 @@ app.post('/upload', function(req, res) {
 
   form.on('file', function(name, file) {
     debug_log('Uploaded ' + file.path);
-    showJogWindow()
+
+    if (jogWindow === null) {
+      createJogWindow();
+      jogWindow.show()
+      // workaround from https://github.com/electron/electron/issues/2867#issuecomment-261067169 to make window pop over for focus
+      jogWindow.setAlwaysOnTop(true);
+      jogWindow.focus();
+      jogWindow.setAlwaysOnTop(false);
+    } else {
+      jogWindow.show()
+      jogWindow.setAlwaysOnTop(true);
+      jogWindow.focus();
+      jogWindow.setAlwaysOnTop(false);
+    }
     readFile(file.path)
   });
 
@@ -627,31 +650,27 @@ io.on("connection", function(socket) {
     }
   }
 
-
-  // Global Update loop
-  clearInterval(frontEndUpdateLoop);
-  frontEndUpdateLoop = setInterval(function() {
+  var interval = setInterval(function() {
     io.sockets.emit("status", status);
-  }, 100);
+    // v1.0.210 - testing if this caused hangs
+    // if (jogWindow) {
+    //   if (status.comms.connectionStatus == 0) {
+    //     jogWindow.setOverlayIcon(nativeImage.createFromPath(iconNoComm), 'Not Connected');
+    //   } else if (status.comms.connectionStatus == 1) {
+    //     jogWindow.setOverlayIcon(nativeImage.createFromPath(iconStop), 'Port Connected');
+    //   } else if (status.comms.connectionStatus == 2) {
+    //     jogWindow.setOverlayIcon(nativeImage.createFromPath(iconStop), 'Connected, and Firmware');
+    //   } else if (status.comms.connectionStatus == 3) {
+    //     jogWindow.setOverlayIcon(nativeImage.createFromPath(iconPlay), 'Playing');
+    //   } else if (status.comms.connectionStatus == 4) {
+    //     jogWindow.setOverlayIcon(nativeImage.createFromPath(iconPause), 'Paused');
+    //   } else if (status.comms.connectionStatus == 5) {
+    //     jogWindow.setOverlayIcon(nativeImage.createFromPath(iconAlarm), 'Alarm');
+    //   }
+    // }
+  }, 50);
 
-  
 
-  socket.on("openFile", function(data) {
-    dialog.showOpenDialog(jogWindow, {
-      properties: ['openFile']
-    }).then(result => {
-      console.log(result.canceled)
-      console.log(result.filePaths)
-      var openFilePath = result.filePaths[0];
-      if (openFilePath !== "") {
-        debug_log("path" + openFilePath);
-        readFile(openFilePath);
-      }
-
-    }).catch(err => {
-      console.log(err)
-    })
-  })
 
   socket.on("openbuilds", function(data) {
     const {
@@ -719,26 +738,12 @@ io.on("connection", function(socket) {
   });
 
   socket.on("maximize", function(data) {
-    if (jogWindow.isFullScreen()) {
-      jogWindow.setFullScreen(false);
-    }
     if (jogWindow.isMaximized()) {
       jogWindow.unmaximize();
     } else {
       jogWindow.maximize();
     }
   });
-
-  socket.on("fullscreen", function(data) {
-    if (jogWindow.isFullScreen()) {
-      jogWindow.setFullScreen(false);
-    } else {
-      jogWindow.setFullScreen(true);
-    }
-  });
-
-
-
 
   socket.on("quit", function(data) {
     if (appIcon) {
@@ -773,7 +778,7 @@ io.on("connection", function(socket) {
       var firmwarePath = path.join(__dirname, file)
     }
 
-       const Avrgirl = require('avrgirl-arduino');
+    const Avrgirl = require('avrgirl-arduino');
 
     if (status.comms.connectionStatus > 0) {
       debug_log('WARN: Closing Port ' + port);
@@ -832,6 +837,7 @@ io.on("connection", function(socket) {
   })
 
   socket.on("writeInterfaceUsbDrive", function(data) {
+    //data = mountpoint dest
     var ncp = require('ncp').ncp;
     ncp.limit = 16;
 
@@ -844,9 +850,10 @@ io.on("connection", function(socket) {
 
     var errorCount = 0;
 
+    var src = path.join(__dirname, './app/wizards/interface/PROBE/');
+    var dest = path.join(data, "/PROBE/");
 
-
-    ncp(probesrc, probedest,
+    ncp(src, dest,
       function(err) {
         if (err) {
           var output = {
@@ -866,8 +873,10 @@ io.on("connection", function(socket) {
         }
       });
 
+    var src = path.join(__dirname, './app/wizards/interface/PROFILES/');
+    var dest = path.join(data, "/PROFILES/");
 
-    ncp(profilesrc, profiledest,
+    ncp(src, dest,
       function(err) {
         if (err) {
           var output = {
@@ -902,7 +911,7 @@ io.on("connection", function(socket) {
         }
         io.sockets.emit('data', output);
       }
-    }, 500);
+    }, 1000);
   });
 
   socket.on("connectTo", function(data) { // If a user picks a port to connect to, open a Node SerialPort Instance to it
@@ -945,26 +954,7 @@ io.on("connection", function(socket) {
       });
 
 
-      port.on("ready", function(e) {
-        portOpened(port, data)
-      });
-
-      port.on("open", function(e) {
-        portOpened(port, data)
-      });
-
-      port.on("close", function() { // open errors will be emitted as an error event
-        debug_log("PORT INFO: Port closed");
-        var output = {
-          'command': 'disconnect',
-          'response': "PORT INFO: Port closed",
-          'type': 'info'
-        }
-        io.sockets.emit('data', output);
-        status.comms.connectionStatus = 0;
-      }); // end port.onclose
-
-      function portOpened(port, data) {
+      port.on("open", function() {
         debug_log("PORT INFO: Connected to " + port.path + " at " + port.baudRate);
         var output = {
           'command': 'connect',
@@ -981,7 +971,7 @@ io.on("connection", function(socket) {
           'type': 'info'
         }
         io.sockets.emit('data', output);
-        addQRealtime("\n"); // this causes smoothie and grblHAL to send the welcome string
+        addQRealtime("\n"); // this causes smoothie to send the welcome string
 
         var output = {
           'command': 'connect',
@@ -1072,11 +1062,11 @@ io.on("connection", function(socket) {
               io.sockets.emit('data', output);
               stopPort();
             } else {
-                var output = {
-                  'command': 'connect',
-                  'response': "Firmware Detected:  " + status.machine.firmware.type + " version " + status.machine.firmware.version + " on " + port.path,
-                  'type': 'success'
-                }
+              var output = {
+                'command': 'connect',
+                'response': "Firmware Detected:  " + status.machine.firmware.type + " version " + status.machine.firmware.version + " on " + port.path,
+                'type': 'success'
+              }
               io.sockets.emit('data', output);
             }
           }, config.firmwareWaitTime * 1000);
@@ -1084,9 +1074,9 @@ io.on("connection", function(socket) {
 
 
         status.comms.connectionStatus = 2;
-          status.comms.interfaces.activePort = port.path;
-          status.comms.interfaces.activeBaud = port.baudRate;
-      }
+        status.comms.interfaces.activePort = port.path;
+        status.comms.interfaces.activeBaud = port.baudRate;
+      }); // end port .onopen
 
       port.on("close", function() { // open errors will be emitted as an error event
         debug_log("PORT INFO: Port closed");
@@ -1270,8 +1260,8 @@ io.on("connection", function(socket) {
         if (data.indexOf("Grbl") === 0) { // Check if it's Grbl
           debug_log(data)
           status.comms.blocked = false;
-            status.machine.firmware.type = "grbl";
-            status.machine.firmware.version = data.substr(5, 4); // get version
+          status.machine.firmware.type = "grbl";
+          status.machine.firmware.version = data.substr(5, 4); // get version
           if (parseFloat(status.machine.firmware.version) < 1.1) { // If version is too old
             if (status.machine.firmware.version.length < 3) {
               debug_log('invalid version string, stay connected')
@@ -1291,20 +1281,18 @@ io.on("connection", function(socket) {
             }
           }
           status.machine.firmware.date = "";
-          // debug_log("GRBL detected");
-          // setTimeout(function() {
-          //   io.sockets.emit('grbl')
-          //   //v1.0.318 - commented out as a test - too many normal alarms clear prematurely
-          //   //io.sockets.emit('errorsCleared', true);
-          // }, 600)
-          // // Start interval for status queries
-          // clearInterval(statusLoop);
-          // statusLoop = setInterval(function() {
-          //   if (status.comms.connectionStatus > 0) {
-          //     addQRealtime("?");
-          //   }
-          // }, 200);
-         // status.machine.modals.homedRecently = false;
+          debug_log("GRBL detected");
+          setTimeout(function() {
+            io.sockets.emit('grbl')
+            io.sockets.emit('errorsCleared', true);
+          }, 600)
+          // Start interval for status queries
+          clearInterval(statusLoop);
+          statusLoop = setInterval(function() {
+            if (status.comms.connectionStatus > 0) {
+              addQRealtime("?");
+            }
+          }, 100);
         } else if (data.indexOf("LPC176") >= 0) { // LPC1768 or LPC1769 should be Smoothieware
           status.comms.blocked = false;
           debug_log("Smoothieware detected");
@@ -1470,17 +1458,6 @@ io.on("connection", function(socket) {
   socket.on('forceQueue', function(data) {
     send1Q();
   });
-
-  socket.on('serialInject', function(data) {
-    // Inject a live command into Serial stream in real-time (dev tool) even while a job is running, etc (straight Port.write from machineSend)
-    machineSend(data, true);
-  });
-
-  socket.on("dump", function(data) {
-    console.log(queuePointer);
-    console.log(gcodeQueue);
-    console.log(sentBuffer);
-  })   //bob12/9
 
   socket.on('runCommand', function(data) {
     debug_log('Run Command (' + data.replace('\n', '|') + ')');
@@ -1886,13 +1863,9 @@ io.on("connection", function(socket) {
           debug_log('Clearing Lockout');
           switch (status.machine.firmware.type) {
             case 'grbl':
-              clearInterval(queueCounter);
-              //jogWindow.setProgressBar(0);
               addQRealtime(String.fromCharCode(0x18)); // ctrl-x
-              setTimeout(function() {
-                addQRealtime('$X\n');
-                debug_log('Sent: $X');
-              }, 500);
+              addQRealtime('$X\n');
+              debug_log('Sent: $X');
               status.comms.blocked = false;
               status.comms.paused = false;
               break;
@@ -1992,7 +1965,6 @@ function machineSend(gcode, realtime) {
       io.sockets.emit("queueCount", data);
       // debug_log(gcode)
       port.write(gcode);
-      debug_log("SENT: " + gcode)
     }
   } else {
     debug_log("PORT NOT OPEN")
@@ -2038,7 +2010,6 @@ function runJob(object) {
         // Start interval for qCount messages to socket clients
         queueCounter = setInterval(function() {
           status.comms.queue = gcodeQueue.length - queuePointer
-          //jogWindow.setProgressBar(queuePointer / gcodeQueue.length)
         }, 500);
         send1Q(); // send first line
         status.comms.connectionStatus = 3;
@@ -2053,7 +2024,6 @@ function runJob(object) {
 function stopPort() {
   clearInterval(queueCounter);
   clearInterval(statusLoop);
-  //jogWindow.setProgressBar(0);
   status.comms.interfaces.activePort = false;
   status.comms.interfaces.activeBaud = false;
   status.comms.connectionStatus = 0;
@@ -2063,7 +2033,7 @@ function stopPort() {
   status.machine.firmware.buffer = "";
   gcodeQueue.length = 0;
   sentBuffer.length = 0; // dump bufferSizes
-   port.drain(port.close());
+  port.drain(port.close());
 }
 
 function parseFeedback(data) {
@@ -2095,7 +2065,7 @@ function parseFeedback(data) {
       xOffset = parseFloat(wco[0]).toFixed(config.posDecimals);
       yOffset = parseFloat(wco[1]).toFixed(config.posDecimals);
       zOffset = parseFloat(wco[2]).toFixed(config.posDecimals);
-      if (status.machine.has4thAxis) {
+      if (has4thAxis) {
         aOffset = parseFloat(wco[3]).toFixed(config.posDecimals);
         status.machine.position.offset.x = parseFloat(xOffset);
         status.machine.position.offset.y = parseFloat(yOffset);
@@ -2135,10 +2105,10 @@ function parseFeedback(data) {
       if (wPos.length > 3) {
         if (aPos !== parseFloat(wPos[3]).toFixed(config.posDecimals)) {
           aPos = parseFloat(wPos[3]).toFixed(config.posDecimals);
-          status.machine.has4thAxis = true;
+          has4thAxis = true;
         }
       }
-      if (status.machine.has4thAxis) {
+      if (has4thAxis) {
         status.machine.position.work.x = parseFloat(xPos);
         status.machine.position.work.y = parseFloat(yPos);
         status.machine.position.work.z = parseFloat(zPos);
@@ -2163,10 +2133,10 @@ function parseFeedback(data) {
       if (mPos.length > 3) {
         if (aPos !== parseFloat(mPos[3]).toFixed(config.posDecimals)) {
           aPos = parseFloat(mPos[3]).toFixed(config.posDecimals);
-          status.machine.has4thAxis = true;
+          has4thAxis = true;
         }
       }
-      if (status.machine.has4thAxis) {
+      if (has4thAxis) {
         status.machine.position.work.x = parseFloat(parseFloat(xPos - status.machine.position.offset.x).toFixed(config.posDecimals));
         status.machine.position.work.y = parseFloat(parseFloat(yPos - status.machine.position.offset.y).toFixed(config.posDecimals));
         status.machine.position.work.z = parseFloat(parseFloat(zPos - status.machine.position.offset.z).toFixed(config.posDecimals));
@@ -2295,10 +2265,10 @@ function gotModals(data) {
   data = data.split(/:|\[|\]/)[2].split(" ")
 
   for (i = 0; i < data.length; i++) {
-    // if (data[i] == "G0") {
-    //   status.machine.modals.motionmode = "G0";
-    // }
-    // if (data[i] == "G1") {
+ // if (data[i] == "G0") {
+ //   status.machine.modals.motionmode = "G0";
+ // }
+     // if (data[i] == "G1") {
     //   status.machine.modals.motionmode = "G1";
     // }
     // if (data[i] == "G2") {
@@ -2410,7 +2380,7 @@ function gotModals(data) {
     //   status.machine.modals.programmode = "M30";
     // }
 
-    //   status.machine.modals.spindlestate = "M5"; // M3, M4, M5
+       //   status.machine.modals.spindlestate = "M5"; // M3, M4, M5
     if (data[i] == "M3") {
       status.machine.modals.spindlestate = "M3";
     }
@@ -2500,7 +2470,7 @@ function BufferSpace(firmware) {
     total += sentBuffer[i].length;
   }
   if (firmware == "grbl") {
-      return GRBL_RX_BUFFER_SIZE - total;
+    return GRBL_RX_BUFFER_SIZE - total;
   }
 }
 
@@ -2551,7 +2521,6 @@ function send1Q() {
       }
       status.comms.connectionStatus = 2; // finished
       clearInterval(queueCounter);
-      //jogWindow.setProgressBar(0);
       gcodeQueue.length = 0; // Dump the Queye
       queuePointer = 0;
       status.comms.connectionStatus = 2; // finished
@@ -2572,16 +2541,11 @@ function addQToEnd(gcode) {
   // if (gcode.indexOf("G54") != -1 || gcode.indexOf("G55") != -1 || gcode.indexOf("G56") != -1 || gcode.indexOf("G57") != -1 || gcode.indexOf("G58") != -1 || gcode.indexOf("G59") != -1) {
   //   gcodeQueue.push("$G");
   // }
-  var testGcode = gcode.toUpperCase()
-  if (testGcode.indexOf("$H") != -1) {
-    status.machine.modals.homedRecently = true;
-  }
-
-  if (new RegExp(modalCommands.join("|")).test(testGcode)) {
+  if (new RegExp(modalCommands.join("|")).test(gcode)) {
     gcodeQueue.push("$G");
   }
-  if (gcode.match(/T([\d.]+)/i)) {
-    gcodeQueue.push("$G");
+  if (gcode.match(/T([\d.]+)/i)) { 
+       gcodeQueue.push("$G");
   }
 }
 
@@ -2592,16 +2556,6 @@ function addQToStart(gcode) {
 function addQRealtime(gcode) {
   // realtime command skip the send1Q as it doesnt respond with an ok
   machineSend(gcode, true);
-}
-
-function showJogWindow() {
-  if (jogWindow === null) {
-    createJogWindow();
-  }
-  jogWindow.show()
-  jogWindow.setAlwaysOnTop(true);
-  jogWindow.focus();
-  jogWindow.setAlwaysOnTop(false);
 }
 
 // Electron
@@ -2650,8 +2604,22 @@ if (isElectron()) {
       }
 
       if (lauchGUI) {
-        showJogWindow()
+        if (jogWindow === null) {
+          createJogWindow();
+          jogWindow.show()
+          jogWindow.setAlwaysOnTop(true);
+          jogWindow.focus();
+          jogWindow.setAlwaysOnTop(false);
+        } else {
+          jogWindow.show()
+          jogWindow.setAlwaysOnTop(true);
+          jogWindow.focus();
+          jogWindow.setAlwaysOnTop(false);
+        }
       }
+
+
+
     })
     // Create myWindow, load the rest of the app, etc...
     app.on('ready', () => {})
@@ -2676,11 +2644,22 @@ if (isElectron()) {
         status.driver.operatingsystem = 'windows';
       }
 
-    //  if (process.platform == 'darwin' || uploadedgcode.length > 1) {
-   //    showJogWindow()
-    //  }
+      
+        if (jogWindow === null) {
+          createJogWindow();
+          jogWindow.show()
+          jogWindow.setAlwaysOnTop(true);
+          jogWindow.focus();
+          jogWindow.setAlwaysOnTop(false);
+        } else {
+          jogWindow.show()
+          jogWindow.setAlwaysOnTop(true);
+          jogWindow.focus();
+          jogWindow.setAlwaysOnTop(false);
+        }
+      }
 
-    }
+    
 
     function createMenu() {
 
@@ -2759,7 +2738,18 @@ if (isElectron()) {
           label: 'Open User Interface (GUI)',
           click() {
             // debug_log("Clicked Systray")
-            showJogWindow()
+            if (jogWindow === null) {
+              createJogWindow();
+              jogWindow.show()
+              jogWindow.setAlwaysOnTop(true);
+              jogWindow.focus();
+              jogWindow.setAlwaysOnTop(false);
+            } else {
+              jogWindow.show()
+              jogWindow.setAlwaysOnTop(true);
+              jogWindow.focus();
+              jogWindow.setAlwaysOnTop(false);
+            }
           }
         }, {
           label: 'Quit Basic SENDER (Disables all integration until started again)',
@@ -2773,14 +2763,36 @@ if (isElectron()) {
         if (appIcon) {
           appIcon.on('click', function() {
             // debug_log("Clicked Systray")
-            showJogWindow()
+            if (jogWindow === null) {
+              createJogWindow();
+              jogWindow.show()
+              jogWindow.setAlwaysOnTop(true);
+              jogWindow.focus();
+              jogWindow.setAlwaysOnTop(false);
+            } else {
+              jogWindow.show()
+              jogWindow.setAlwaysOnTop(true);
+              jogWindow.focus();
+              jogWindow.setAlwaysOnTop(false);
+            }
           })
         }
 
         if (appIcon) {
           appIcon.on('balloon-click', function() {
             // debug_log("Clicked Systray")
-            showJogWindow()
+            if (jogWindow === null) {
+              createJogWindow();
+              jogWindow.show()
+              jogWindow.setAlwaysOnTop(true);
+              jogWindow.focus();
+              jogWindow.setAlwaysOnTop(false);
+            } else {
+              jogWindow.show()
+              jogWindow.setAlwaysOnTop(true);
+              jogWindow.focus();
+              jogWindow.setAlwaysOnTop(false);
+            }
           })
         }
 
@@ -2831,7 +2843,6 @@ if (isElectron()) {
         experimentalFeatures: true,
         experimentalCanvasFeatures: true,
         offscreen: true,
-        backgroundColor: "#fff"
       });
 
       jogWindow.setOverlayIcon(nativeImage.createFromPath(iconPath), 'Icon');
@@ -2855,7 +2866,10 @@ if (isElectron()) {
         jogWindow = null;
       });
       jogWindow.once('ready-to-show', () => {
-        showJogWindow()
+        jogWindow.show()
+        jogWindow.setAlwaysOnTop(true);
+        jogWindow.focus();
+        jogWindow.setAlwaysOnTop(false);
       })
     }
 
@@ -2952,7 +2966,6 @@ function stop(data) {
         break;
     }
     clearInterval(queueCounter);
-    //jogWindow.setProgressBar(0);
     status.comms.queue = 0
     queuePointer = 0;
     gcodeQueue.length = 0; // Dump the queue
@@ -3043,6 +3056,55 @@ function startChrome() {
   }
 }
 
+// Interface Programming
+
+
+// grab latest firmware.bin for Interface on startup
+
+/*var file = fs.createWriteStream(path.join(uploadsDir, "firmware.bin"));
+https.get("https://raw.githubusercontent.com/OpenBuilds/firmware/main/interface/firmware.bin", function(response) {
+  response.pipe(file);
+  file.on('finish', function() {
+    file.close(function() {
+
+      const options = {
+        hostname: 'raw.githubusercontent.com',
+        port: 443,
+        path: '/OpenBuilds/firmware/main/interface/version.txt',
+        method: 'GET'
+      }
+
+      const req = https.request(options, res => {
+        console.log(`statusCode: ${res.statusCode}`)
+
+        res.on('data', d => {
+          status.interface.firmware.availVersion = parseFloat(d.toString())
+
+          var output = {
+            'command': 'interface firmware update tool',
+            'response': "Downloaded firmware.bin v" + status.interface.firmware.availVersion,
+            'type': 'info'
+          }
+          io.sockets.emit('data', output);
+
+        })
+      })
+
+      req.on('error', error => {
+        var output = {
+          'command': 'interface firmware update tool',
+          'response': "Unable to download latest firmware.bin",
+          'type': 'error'
+        }
+        io.sockets.emit('data', output);
+      })
+
+      req.end()
+
+
+    });
+  });
+}) */
 
 
 
