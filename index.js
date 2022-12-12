@@ -1008,38 +1008,6 @@ io.on("connection", function(socket) {
           }
         }, config.grblWaitTime * 2000);
 
-
-        setTimeout(function() {
-          if (status.machine.firmware.type.length > 1) {
-            if (status.machine.firmware.type === "grbl") {
-              debug_log("GRBL detected");
-              var output = {
-                'command': 'connect',
-                'response': "Detecting Firmware: Detected Grbl Succesfully",
-                'type': 'info'
-              }
-              setTimeout(function() {
-                io.sockets.emit('grbl')
-                //v1.0.318 - commented out as a test - too many normal alarms clear prematurely
-                //io.sockets.emit('errorsCleared', true);
-              }, 600)
-              // Start interval for status queries
-              clearInterval(statusLoop);
-              statusLoop = setInterval(function() {
-                if (status.comms.connectionStatus > 0) {
-                  addQRealtime("?");
-                }
-              }, 200);
-              status.machine.modals.homedRecently = false;
-            }
-          }
-
-
-        }, config.grblWaitTime * 3000)
-
-
-
-
         if (config.firmwareWaitTime > 0) {
           setTimeout(function() {
             // Close port if we don't detect supported firmware after 2s.

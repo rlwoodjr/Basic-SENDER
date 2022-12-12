@@ -530,13 +530,6 @@ function initSocket() {
 
     // if (!_.isEqual(status, laststatus)) {
     if (laststatus !== undefined) {
-
-      if (!_.isEqual(status.machine.position.offset, laststatus.machine.position.offset) || machineCoordinateSpace == false) {
-        drawMachineCoordinates(status);
-      }
-      
-
-
       if (!_.isEqual(status.comms.interfaces.ports, laststatus.comms.interfaces.ports)) {
         var string = "Detected a change in available ports: ";
         for (i = 0; i < status.comms.interfaces.ports.length; i++) {
@@ -647,7 +640,7 @@ function initSocket() {
       if (!disable3Drealtimepos) {
         if (!isJogWidget) {
           if (!simRunning) {
-            
+            if (object) {
 
               if(pDiameter>0){
                 posa=status.machine.position.work.a*Math.PI/180
@@ -661,7 +654,7 @@ function initSocket() {
                 cone.position.y = status.machine.position.work.y
                 cone.position.z = status.machine.position.work.z+20
               }
-            
+            }
 
           }
         }
@@ -720,17 +713,14 @@ function initSocket() {
           case 'X':
             // console.log('PIN: X-LIMIT');
             $('#xpin').removeClass('success').addClass('alert').html('ON')
-            $('#xpinH').removeClass('success').addClass('alert').html('ON')
             break;
           case 'Y':
             // console.log('PIN: Y-LIMIT');
             $('#ypin').removeClass('success').addClass('alert').html('ON')
-            $('#ypinH').removeClass('success').addClass('alert').html('ON')
             break;
           case 'Z':
             // console.log('PIN: Z-LIMIT');
             $('#zpin').removeClass('success').addClass('alert').html('ON')
-            $('#zpinH').removeClass('success').addClass('alert').html('ON')
             break;
           case 'P':
             // console.log('PIN: PROBE');
