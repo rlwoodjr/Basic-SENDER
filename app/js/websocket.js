@@ -453,7 +453,8 @@ function initSocket() {
     }
   })
 
-  socket.on('progStatus', function(data) {
+  socket.on("progStatus", function(data) {
+    console.info('I am here.');
 
     $('#controlTab').click();
     $('#consoletab').click();

@@ -768,22 +768,25 @@ io.on("connection", function(socket) {
     }
   })
 
-  socket.on("flashGrbl", function(data) {
+    socket.on("flashGrbl", function(data) {
 
-    var port = data.port;
-    var file = data.file;
-    var board = data.board
-    var customImg = data.customImg
-    console.log(__dirname, file, data.file)
-    if (customImg) {
-      var firmwarePath = data.file
-    } else {
-      var firmwarePath = path.join(__dirname, file)
-    }
+      var port = data.port;
+      var firmwareImagePath = data.file;
+      var board = data.board
+      var customImg = data.customImg
+      console.log(__dirname, file, data.file)
+      if (customImg) {
+        var firmwarePath = data.file
+      } else {
+        var firmwarePath = path.join(__dirname, data.file)
+      }
 
     console.log("-------------------------------------------")
     console.log(firmwarePath)
     console.log("-------------------------------------------")
+
+
+
 
     const Avrgirl = require('avrgirl-arduino');
 
@@ -816,12 +819,26 @@ io.on("connection", function(socket) {
       debug_log(JSON.stringify(avrgirl));
 
       status.comms.connectionStatus = 6;
+
+
+      
       avrgirl.flash(firmwarePath, function(error) {
         if (error) {
           console.error(error);
           io.sockets.emit("progStatus", 'Flashing FAILED!');
           status.comms.connectionStatus = 0;
         } else {
+
+
+    /*      console.log(data.port, data.file)
+          var string = data.file
+          if (string) {
+         if ( data.file == 'eepromclear.hex'){
+              string = "waiting to install firmware"
+             // sleep(6000); // allow time for clear EEPROM to run
+              installFirmware();
+         }}*/
+
           console.info('done.');
           io.sockets.emit("progStatus", 'Programmed Succesfully');
           io.sockets.emit("progStatus", 'Please Reconnect');
