@@ -31,9 +31,15 @@ $(document).ready(function() {
 
 function showGrbl(bool) {
   if (bool) {
-    sendGcode('$$')
-    sendGcode('$I')
-    sendGcode('$G')
+    setTimeout(function() {
+      sendGcode('$$')
+    }, 500);
+    setTimeout(function() {
+      sendGcode('$I')
+    }, 700);
+    setTimeout(function() {
+      sendGcode('$G')
+    }, 900);
     $("#grblButtons").show()
     $("#firmwarename").html('Grbl')
   } else {
@@ -45,9 +51,9 @@ function showGrbl(bool) {
   }else{
     jogOverride(20);
   }
-
-
-
+  if (laststatus !== undefined) {
+    $("#firmwareversionstatus").html(laststatus.machine.firmware.platform + " " + laststatus.machine.firmware.version);
+  };
 }
 
 function printLogModern(icon, source, string, printLogCls) {
@@ -156,6 +162,7 @@ function initSocket() {
     } else {
       $('#gcodeeditortab').click()
     }
+    jobNeedsHoming();
   });
 
   socket.on('gcodeupload', function(data) {
@@ -195,6 +202,7 @@ function initSocket() {
     // 6 = Firmware Upgrade State
     if (laststatus.comms.connectionStatus < 3 && !continuousJogRunning) {
       $('#availVersion').html(data)
+      getReleaseStats()
       getChangelog();
       Metro.dialog.open('#downloadUpdate')
     }
@@ -223,7 +231,11 @@ function initSocket() {
       if (typeof grblSettings !== 'undefined') {
         grblSettings(data.response)
         var key = data.response.split('=')[0].substr(1);
-        var descr = grblSettingCodes[key];
+        if (grblSettingsTemplate2[key] !== undefined) {
+          var descr = grblSettingsTemplate2[key].title
+        } else {
+          var descr = "unknown"
+        }
         toPrint = data.response + "  ;" + descr
         var icon = ''
         var source = data.command
@@ -323,7 +335,11 @@ function initSocket() {
 
   });
 
-
+  socket.on("machinename", function(data) {
+    if (typeof setMachineButton !== 'undefined') {
+      setMachineButton(data)
+    }
+  });
 
   socket.on("queueCount", function(data) {
     // calc percentage
@@ -341,8 +357,6 @@ function initSocket() {
       }
       if (typeof object !== 'undefined' && done > 0) {
         if (object.userData !== 'undefined' && object.userData && object.userData.linePoints.length > 2) {
-          //object.geometry.attributes.color.array[data[1]-data[0]] = 0
-          //object.geometry.addAttribute('color', 0);
           var timeremain = object.userData.totalTime;
           if (!isNaN(timeremain)) {
             if (lastJobStartTime) {
@@ -361,7 +375,7 @@ function initSocket() {
     }else{
       localStorage.setItem('gcodeLineNumber','NA');
     }
-    
+
   })
 
   socket.on('toastErrorAlarm', function(data) {
@@ -395,9 +409,9 @@ function initSocket() {
     if (data.indexOf("ALARM: 6") == -1 && data.indexOf("ALARM: 7") == -1 && data.indexOf("ALARM: 8") == -1 && data.indexOf("ALARM: 9") == -1 && data.indexOf("ALARM: 10") == -1) {
       openDialogs.push(dialog);
     }
-    
+
     setTimeout(function() {
-     $(".closeAlarmBtn").focus();
+      $(".closeAlarmBtn").focus();
     }, 200, )
     //
   });
@@ -411,11 +425,11 @@ function initSocket() {
     var printLogCls = "fg-darkRed"
     printLogModern(icon, source, string, printLogCls)
 
-      var dialog = Metro.dialog.create({
+    var dialog = Metro.dialog.create({
       title: "<i class='fas fa-exclamation-triangle'></i> Grbl Error:",
       content: "<i class='fas fa-exclamation-triangle fg-darkRed'></i>  " + data,
       clsDialog: 'dark',
-        actions: [{
+      actions: [{
         caption: "OK",
         cls: "js-dialog-close alert closeErrorBtn",
         onclick: function() {
@@ -430,16 +444,6 @@ function initSocket() {
     //
   });
 
-
-  socket.on("errorsCleared", function(data) {
-    if (data) {
-      for (i = 0; i < openDialogs.length; i++) {
-        Metro.dialog.close(openDialogs[i]);
-      }
-      openDialogs.length = 0;
-    }
-  })
- 
   socket.on("errorsCleared", function(data) {
     if (data) {
       for (i = 0; i < openDialogs.length; i++) {
@@ -450,20 +454,20 @@ function initSocket() {
   })
 
   socket.on('progStatus', function(data) {
-    
+
     $('#controlTab').click();
     $('#consoletab').click();
     console.log(data.port, data.string)
     var string = data.string
     if (string) {
-      if (string.indexOf('flash complete') != -1  && data.file == 'eepromclear.hex'){
+   if (string.indexOf('flash complete') != -1  && data.file == 'eepromclear.hex'){
         string = "waiting to install firmware"
         sleep(6000); // allow time for clear EEPROM to run
         installFirmware();
 
       }else if(string.indexOf('flash complete') != -1 ){
         setTimeout(function() {
-           populatePortsMenu();
+          populatePortsMenu();
         }, 400)
       }
       string = string.replace('[31mflash complete.[39m', "<span class='fg-darkRed'><i class='fas fa-times fa-fw fg-darkRed fa-fw'> </i> FLASH FAILED!</span> ");
@@ -495,13 +499,13 @@ function initSocket() {
         var source = " Installing Firmware"
       }
 
-     
-         
+
+
       //var string = string
       var printLogCls = "fg-dark"
       printLogModern(icon, source, string, printLogCls)
 
-      if (data.code != undefined) {
+       if (data.code != undefined) {
         var icon = ''
         var source = " Flashing Firmware"
         if (data.code == 0) {
@@ -531,11 +535,11 @@ function initSocket() {
     // if (!_.isEqual(status, laststatus)) {
     if (laststatus !== undefined) {
 
-      if (!_.isEqual(status.machine.position.offset, laststatus.machine.position.offset) || machineCoordinateSpace == false) {
-        drawMachineCoordinates(status);
+      if (!isJogWidget) {
+        if (!_.isEqual(status.machine.position.offset, laststatus.machine.position.offset) || machineCoordinateSpace == false) {
+          drawMachineCoordinates(status);
+        }
       }
-      
-
 
       if (!_.isEqual(status.comms.interfaces.ports, laststatus.comms.interfaces.ports)) {
         var string = "Detected a change in available ports: ";
@@ -552,6 +556,24 @@ function initSocket() {
         var printLogCls = "fg-dark"
         printLogModern(icon, source, string, printLogCls)
         laststatus.comms.interfaces.ports = status.comms.interfaces.ports;
+        populatePortsMenu();
+      }
+
+      if (!_.isEqual(status.comms.interfaces.networkDevices, laststatus.comms.interfaces.networkDevices)) {
+        var string = "Detected a change in IP devices: ";
+        for (i = 0; i < status.comms.interfaces.networkDevices.length; i++) {
+          string += "[" + status.comms.interfaces.networkDevices[i].ip + "]"
+        }
+
+        if (!status.comms.interfaces.networkDevices.length) {
+          string += "[ No IP devices ]"
+        }
+        var icon = ''
+        var source = "network ports"
+        //var string = string
+        var printLogCls = "fg-dark"
+        printLogModern(icon, source, string, printLogCls)
+        laststatus.comms.interfaces.networkDevices = status.comms.interfaces.networkDevices;
         populatePortsMenu();
       }
 
@@ -649,21 +671,21 @@ function initSocket() {
           if (!simRunning) {
             
 
-              if(pDiameter>0){
-                posa=status.machine.position.work.a*Math.PI/180
-                cone.rotation.x=-posa-Math.PI/2
-                cone.position.x = status.machine.position.work.x
-                cone.position.y = ((status.machine.position.work.z+20)*Math.sin(posa)).toFixed(4)
-                cone.position.z = (status.machine.position.work.z+20)*Math.cos(posa).toFixed(4)
-              }else{
-                cone.rotation.x=-Math.PI/2
-                cone.position.x = status.machine.position.work.x
-                cone.position.y = status.machine.position.work.y
-                cone.position.z = status.machine.position.work.z+20
-              }
-            
+            if(pDiameter>0){
+              posa=status.machine.position.work.a*Math.PI/180
+              cone.rotation.x=-posa-Math.PI/2
+              cone.position.x = status.machine.position.work.x
+              cone.position.y = ((status.machine.position.work.z+20)*Math.sin(posa)).toFixed(4)
+              cone.position.z = (status.machine.position.work.z+20)*Math.cos(posa).toFixed(4)
+            }else{
+              cone.rotation.x=-Math.PI/2
+              cone.position.x = status.machine.position.work.x
+              cone.position.y = status.machine.position.work.y
+              cone.position.z = status.machine.position.work.z+20
+            }
+          
 
-          }
+        }
         }
       }
     }
@@ -756,7 +778,7 @@ function initSocket() {
         }
       }
     }
-
+    
     $('#driverver').html("v" + status.driver.version);
     if (!status.machine.firmware.type) {
       $('#firmwarever').html("NOCOMM");
@@ -851,6 +873,13 @@ function initSocket() {
     }
 
 
+    // Enable or disable 4th axis UI elements
+    if (status.machine.has4thAxis) {
+      $(".4thaxis-active").show();
+    } else {
+      $(".4thaxis-active").hide();
+    }
+
 
     laststatus = status;
     waitingForStatus = false;
@@ -932,7 +961,7 @@ function initSocket() {
 
  /* socket.on("interfaceOutdated", function(status) {
     console.log("interfaceOutdated", status)
-    //populateGrblBuilderToolForm();
+    openFlashingTool();
     var select = $("#flashController").data("select").val("interface")
     //status.interface.firmware.installedVersion
     //status.interface.firmware.availVersion
@@ -990,15 +1019,92 @@ function initSocket() {
 
 };
 
-function selectPort() {
+
+
+function scanNetwork() {
+
+  var currentIp = laststatus.driver.ipaddress.split(".")
+  var scanTemplate = `
+  <div class="row mt-2">
+    <div class="cell-md-12 mb-1">
+      Enter the IP address range to scan for devices.  <p>
+      <small>Warning: This may disconnect other running instances / open connections to/from other devices</small>
+    </div>
+  </div>
+  <hr>
+  <div class="row mt-2">
+    <div class="cell-md-3 mb-1">IP Range</div>
+    <div class="cell-md-9 mb-1">
+      <form class="inline-form">
+        <input id="scanIp1" type="number" data-clear-button="false" style="width: 80px;" data-append="." data-editable="true" value="` + currentIp[0] + `">.
+        <input id="scanIp2" type="number" data-clear-button="false" style="width: 80px;" data-append="." data-editable="true" value="` + currentIp[1] + `">.
+        <input id="scanIp3" type="number" data-clear-button="false" style="width: 80px;" data-append="." data-editable="true" value="` + currentIp[2] + `">.
+        <input type="text" readonly disabled value="1-254" data-clear-button="false"  style="width: 80px;" data-editable="true">
+      </form>
+    </div>
+  </div>
+  `
+
+  Metro.dialog.create({
+    title: "<i class='fas fa-network-wired fa-fw'></i> Network Scan",
+    content: scanTemplate,
+    toTop: true,
+    width: '75%',
+    clsDialog: 'dark',
+    actions: [{
+      caption: "Start Scan",
+      cls: "js-dialog-close success",
+      onclick: function() {
+        var network = $("#scanIp1").val() + '.' + $("#scanIp2").val() + '.' + $("#scanIp3").val();
+        var range = network + ".1-" + network + ".254"
+        socket.emit('scannetwork', range)
+        $('#controlTab').click();
+        $('#consoletab').click();
+      }
+    }, {
+      caption: "Cancel",
+      cls: "js-dialog-close",
+      onclick: function() {
+        //
+      }
+    }]
+  });
+
+}
+
+function selectPort(port) {
   $('#consoletab').click();
-  socket.emit('connectTo', 'usb,' + $("#portUSB").val() + ',' + '115200');
+  if (port == undefined) {
+    port = $("#portUSB").val()
+  }
+  if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(port)) {
+    var data = {
+      ip: port,
+      port: false,
+      baud: false,
+      type: "telnet"
+    };
+    localStorage.setItem("lastip", port);
+  } else {
+    var data = {
+      port: port,
+      baud: 115200,
+      type: "usb"
+    };
+  }
+  if (port.length > 1) {
+    socket.emit('connectTo', data);
+  } else {
+    printLog("[connect] No Ports/IP selected/entered")
+  }
+  // socket.emit('connectTo', 'usb,' + $("#portUSB").val() + ',' + '115200');
 };
 
 function closePort() {
   socket.emit('closePort', 1);
   populatePortsMenu();
-  $('.mdata').val('');
+  $('#controlTab').click();
+  $('#consoletab').click();
 }
 
 function populateDrivesMenu() {
@@ -1037,26 +1143,45 @@ function populateDrivesMenu() {
 
 function populatePortsMenu() {
   if (laststatus) {
-    var response = `<select id="select1" data-role="select" class="mt-4"><optgroup label="USB Ports">`
-    for (i = 0; i < laststatus.comms.interfaces.ports.length; i++) {
-      var port = friendlyPort(i)
-      response += `<option value="` + laststatus.comms.interfaces.ports[i].path + `">` + port.note + " " + laststatus.comms.interfaces.ports[i].path.replace("/dev/tty.", "") + `</option>`;
-    };
+    var response = ``
     if (!laststatus.comms.interfaces.ports.length) {
-      response += `<option value="">Waiting for USB</option>`
-      $("#driverBtn").show();
+      response += `<optgroup label="USB/Serial Ports">`
+      response += `<option value="">No USB/Serial Ports</option>`
     } else {
-      $("#driverBtn").hide();
+      response += `<optgroup label="USB Ports">`
+      for (i = 0; i < laststatus.comms.interfaces.ports.length; i++) {
+        var port = friendlyPort(i)
+        response += `<option value="` + laststatus.comms.interfaces.ports[i].path + `">` + port.note + " " + laststatus.comms.interfaces.ports[i].path.replace("/dev/tty.", "") + `</option>`;
+      };
     }
-    response += `</optgroup></select>`
-    var select = $("#portUSB").data("select");
-    select.data(response);
+    response += `</optgroup>`
+
+    // Set USB Ports menu for Firmware Flashing tool before we add the Network ports - you cannot flash over the network
     var select2 = $("#portUSB2").data("select");
     if (select2) {
       select2.data(response);
     }
-    $('#portUSB').parent(".select").removeClass('disabled')
     $('#portUSB2').parent(".select").removeClass('disabled')
+
+    // Add the Network Ports to the list then populate the Machine Connection selection
+    if (!laststatus.comms.interfaces.networkDevices.length) {
+      response += `<optgroup label="Network Ports">`
+      response += `<option value="">No Network Ports</option>`
+    } else {
+      response += `<optgroup label="Network Ports">`
+      for (i = 0; i < laststatus.comms.interfaces.networkDevices.length; i++) {
+        if (laststatus.comms.interfaces.networkDevices[i].type) {
+          response += `<option value="` + laststatus.comms.interfaces.networkDevices[i].ip + `">` + laststatus.comms.interfaces.networkDevices[i].ip + " [ " + laststatus.comms.interfaces.networkDevices[i].type + ` ]</option>`;
+        } else {
+          response += `<option value="` + laststatus.comms.interfaces.networkDevices[i].ip + `">` + laststatus.comms.interfaces.networkDevices[i].ip + `</option>`;
+        }
+      };
+    }
+    response += `</optgroup>`
+    var select = $("#portUSB").data("select");
+    select.data(response);
+
+    $('#portUSB').parent(".select").removeClass('disabled')
     $("#connectBtn").attr('disabled', false);
   }
 }
@@ -1070,15 +1195,14 @@ function sendGcode(gcode) {
 function feedOverride(step) {
   if (socket) {
     socket.emit('feedOverride', step);
-
+   
   }
-
 }
 
 function spindleOverride(step) {
   if (socket) {
     socket.emit('spindleOverride', step);
-  
+ 
   }
 }
 

@@ -48,7 +48,7 @@ function getChangelog() {
     if (lines.length < 12) {
       var count = lines.length - 1
     } else {
-      var count = 30
+      var count = 24
     }
     for (var line = 0; line < count - 1; line++) {
       template2 += '<li>' + lines[line] + '</li>'
@@ -74,13 +74,13 @@ $(document).ready(function() {
   initDiagnostics(); // run second time to ensure checkboxes are ticked
 
   if (localStorage.getItem('gcodeLineNumber')){
-  var LineNumber=localStorage.getItem('gcodeLineNumber')
-    $('#lastLineRan').html(" "+ LineNumber)
-  }else{
-    $('#lastLineRan').html('NA')
-  }
+    var LineNumber=localStorage.getItem('gcodeLineNumber')
+      $('#lastLineRan').html(" "+ LineNumber)
+    }else{
+      $('#lastLineRan').html('NA')
+    }
 
-
+    
   if (!isJogWidget) {
     init3D();
   }
@@ -147,6 +147,7 @@ $(document).ready(function() {
       } else {
         $('#gcodeeditortab').click()
       }
+      jobNeedsHoming();
     }
 
   });
@@ -213,13 +214,33 @@ function runJobFile() {
     // Add any event handlers here...
     xhr.open('POST', '/runjob', true);
     xhr.send(formData);
+    printLog(`<span class="fg-red">[ GCODE Parser ]</span><span class='fg-darkGray'> GCODE File (from memory) sent to backend </span>`);
 
   } else {
-    socket.emit('runJob', {
-      data: editor.getValue(),
-      isJob: true,
-      fileName: loadedFileName
+    // v1.0.329 Removed as a test for random issue with Websocket Disconnects on some files, using http post for both
+    // socket.emit('runJob', {
+    //   data: editor.getValue(),
+    //   isJob: true,
+    //   fileName: loadedFileName
+    // });
+    var formData = new FormData();
+    var blob = new Blob([editor.getValue()], {
+      type: 'text/plain'
     });
+
+    var fileOfBlob = new File([blob], 'upload.gcode');
+    formData.append("file", fileOfBlob);
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+      if (xhr.status == 200) {
+        console.log(xhr.response)
+      }
+    };
+    // Add any event handlers here...
+    xhr.open('POST', '/runjob', true);
+    xhr.send(formData);
+    printLog(`<span class="fg-red">[ GCODE Parser ]</span><span class='fg-darkGray'> GCODE File (from gcode editor) sent to backend </span>`);
+
   }
 
   lastJobStartTime = new Date().getTime()
@@ -265,9 +286,31 @@ function loadFile(f) {
         printLog(`<span class="fg-red">[ GCODE Parser ]</span><span class='fg-darkGray'> GCODE File Loaded </span>`);
       }
       parseGcodeInWebWorker(this.result)
-
+      jobNeedsHoming();
     };
     // }
+  }
+}
+
+function jobNeedsHoming() {
+
+  if (editor.getValue().lastIndexOf("G53") != -1 || editor.getValue().lastIndexOf("g53") != -1) {
+    if (laststatus !== undefined) {
+      if (laststatus.machine.modals.homedRecently == false) {
+        var dialog = Metro.dialog.create({
+          clsDialog: 'dark',
+          title: "<i class='fas fa-exclamation-triangle'></i> Job uses Machine Coordinates:",
+          content: "<i class='fas fa-exclamation-triangle fg-darkRed'></i> Tip: The GCODE file you loaded contains G53 commands. Please make sure to HOME the machine to establish the Machine Coordinate (G53) System properly to prevent crashes.",
+          actions: [{
+            caption: "Close",
+            cls: "js-dialog-close",
+            onclick: function() {
+              //
+            }
+          }]
+        });
+      }
+    }
   }
 }
 
@@ -316,6 +359,84 @@ function versionCompare(v1, v2, options) {
   return 0;
 }
 
+
+
+function isWebGLAvailable() {
+
+  try {
+
+    const canvas = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+
+  } catch (e) {
+
+    return false;
+
+  }
+
+}
+
+function isWebGL2Available() {
+
+  try {
+
+    const canvas = document.createElement('canvas');
+    return !!(window.WebGL2RenderingContext && canvas.getContext('webgl2'));
+
+  } catch (e) {
+
+    return false;
+
+  }
+
+}
+
+function getWebGLErrorMessage() {
+
+  return getErrorMessage(1);
+
+}
+
+function getWebGL2ErrorMessage() {
+
+  return getErrorMessage(2);
+
+}
+
+function getErrorMessage(version) {
+
+  const names = {
+    1: 'WebGL',
+    2: 'WebGL 2'
+  };
+
+  const contexts = {
+    1: window.WebGLRenderingContext,
+    2: window.WebGL2RenderingContext
+  };
+
+  let message = 'Your $0 does not seem to support $1: See http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation to learn more';
+
+  if (contexts[version]) {
+
+    message = message.replace('$0', 'graphics card');
+
+  } else {
+
+    message = message.replace('$0', 'browser');
+
+  }
+
+  message = message.replace('$1', names[version]);
+
+
+
+  return message;
+
+}
+
+
+
 var webgl = (function() {
   if (disable3Dviewer) {
     return false;
@@ -325,7 +446,9 @@ var webgl = (function() {
   } else {
     // console.log("Testing WebGL")
     try {
-      return !!window.WebGLRenderingContext && !!document.createElement('canvas').getContext('experimental-webgl');
+      if (isWebGLAvailable() || isWebGL2Available()) {
+        return true
+      };
     } catch (e) {
       return false;
     }
@@ -447,7 +570,10 @@ function softlimits(){
       $('#softlimiticon').addClass('fg-green')
  
   }
-  
 
-  
+function toTitleCase(str) {
+  return str.replace(/(?:^|\s)\w/g, function(match) {
+    return match.toUpperCase();
+  });
+ }
 }

@@ -27,7 +27,7 @@ debug_log("Starting Basic SENDER v" + require('./package').version)
 var config = {};
 config.webPort = process.env.WEB_PORT || 3000;
 config.posDecimals = process.env.DRO_DECIMALS || 2;
-config.grblWaitTime = 1;
+config.grblWaitTime = 0.5;
 config.firmwareWaitTime = 4;
 
 var express = require("express");
@@ -69,7 +69,7 @@ app.post('/uploadCustomFirmware', (req, res) => {
 
     // Display uploaded image for user validation
     firmwareImagePath = req.file.path;
-    res.send(`Using ` + req.file.path);
+    res.send(req.file.path);
   });
 });
 // end Interface Firmware flash
@@ -96,11 +96,21 @@ io.attach(httpserver);
 io.attach(httpsserver);
 
 const grblStrings = require("./grblStrings.js");
-const serialport = require('serialport');
-var SerialPort = serialport;
-const Readline = SerialPort.parsers.Readline;
-var md5 = require('md5');
+
+// Serial
+const {
+  SerialPort
+} = require('serialport')
+const {
+  ReadlineParser
+} = require('@serialport/parser-readline');
+
+// telnet
+const net = require('net');
 var ip = require("ip");
+const Evilscan = require('evilscan');
+
+var md5 = require('md5');
 var _ = require('lodash');
 var formidable = require('formidable')
 var lastsentuploadprogress = 0;
@@ -108,18 +118,15 @@ var lastsentuploadprogress = 0;
 // Electron app
 const electron = require('electron');
 const electronApp = electron.app;
-
+const {
+  dialog
+} = require('electron')
+electronApp.commandLine.appendSwitch('ignore-gpu-blacklist')
+electronApp.commandLine.appendSwitch('enable-gpu-rasterization')
+electronApp.commandLine.appendSwitch('enable-zero-copy')
 
 if (isElectron()) {
   debug_log("Local User Data: " + electronApp.getPath('userData'))
-  electronApp.commandLine.appendSwitch('ignore-gpu-blacklist', 'true')
-  electronApp.commandLine.appendSwitch('enable-gpu-rasterization', 'true')
-  electronApp.commandLine.appendSwitch('enable-zero-copy', 'true')
-  electronApp.commandLine.appendSwitch('disable-software-rasterizer', 'true')
-  electronApp.commandLine.appendSwitch('enable-native-gpu-memory-buffers', 'true')
-  // Removing max-old-space-size switch (Introduced in 1.0.168 and removed in 1.0.169) due it causing High CPU load on some PCs.
-  //electronApp.commandLine.appendSwitch('js-flags', '--max-old-space-size=8192')
-  debug_log('Command Line Arguments for Electron: Set OK')
 }
 const BrowserWindow = electron.BrowserWindow;
 const Tray = electron.Tray;
@@ -280,7 +287,7 @@ function checkPowerSettings() {
           debug_log('powercfg /q exited with exit code ' + code);
           setTimeout(function() {
             debug_log(status.driver.powersettings.usbselectiveDC, status.driver.powersettings.usbselectiveAC)
-          }, 200);
+          }, 100);
         })
       }
     });
@@ -289,7 +296,7 @@ function checkPowerSettings() {
 }
 
 
-var oldportslist;
+var oldportslist, oldiplist;
 var oldpinslist;
 const iconPath = path.join(__dirname, 'app/icon.png');
 const iconNoComm = path.join(__dirname, 'app/icon-notconnected.png');
@@ -303,10 +310,12 @@ var lastCommand = false
 var gcodeQueue = [];
 var queuePointer = 0;
 var statusLoop;
+var frontEndUpdateLoop
 var queueCounter;
 var listPortsLoop;
 
 var GRBL_RX_BUFFER_SIZE = 127; // 128 characters
+var GRBLHAL_RX_BUFFER_SIZE = 1023; // 128 characters
 var sentBuffer = [];
 
 var xPos = 0.00;
@@ -317,7 +326,7 @@ var xOffset = 0.00;
 var yOffset = 0.00;
 var zOffset = 0.00;
 var aOffset = 0.00;
-var has4thAxis = false;
+
 
 var feedOverride = 100,
   spindleOverride = 100;
@@ -338,6 +347,7 @@ var status = {
   },
   machine: {
     name: '',
+    has4thAxis: false,
     inputs: [],
     overrides: {
       feedOverride: 100, //
@@ -362,9 +372,10 @@ var status = {
       unitsmode: "G21", // G20, G21
       radiuscomp: "G40", // G40
       tlomode: "G49", // G43.1, G49
-     // programmode: "M0", // M0, M1, M2, M30
+      // programmode: "M0", // M0, M1, M2, M30
       spindlestate: "M5", // M3, M4, M5
-      coolantstate: "M9" // M7, M8, M9
+      coolantstate: "M9", // M7, M8, M9
+      homedRecently: false
       // tool: "0",
       // spindle: "0",
       // feedrate: "0"
@@ -394,6 +405,7 @@ var status = {
     },
     firmware: {
       type: "",
+      platform: "",
       version: "",
       date: "",
       buffer: [],
@@ -410,7 +422,9 @@ var status = {
     paused: false,
     controllerBuffer: 0, // Seems like you are tracking available buffer?  Maybe nice to have in frontend?
     interfaces: {
+      type: "",
       ports: "",
+      networkDevices: [],
       activePort: "" // or activeIP in the case of wifi/telnet?
     },
     alarm: ""
@@ -466,9 +480,6 @@ var PortCheckinterval = setInterval(function() {
 }, 1000);
 
 checkPowerSettings()
-// var PowerSettingsInterval = setInterval(function() {
-//   checkPowerSettings()
-// }, 60 * 1000)
 
 
 // JSON API
@@ -487,23 +498,11 @@ app.get('/activate', (req, res) => {
   debug_log(req.hostname)
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.send('Host: ' + req.hostname + ' asked to activate Basic SENDER v' + require('./package').version);
-  if (jogWindow === null) {
-    createJogWindow();
-    jogWindow.show()
-  // workaround from https://github.com/electron/electron/issues/2867#issuecomment-261067169 to make window pop over for focus
-    jogWindow.setAlwaysOnTop(true);
-    jogWindow.focus();
-    jogWindow.setAlwaysOnTop(false);
-  } else {
-    jogWindow.show()
-    jogWindow.setAlwaysOnTop(true);
-    jogWindow.focus();
-    jogWindow.setAlwaysOnTop(false);
-  }
+  res.send('Host: ' + req.hostname + ' asked to activate OpenBuilds CONTROL v' + require('./package').version);
+  showJogWindow()
   setTimeout(function() {
     io.sockets.emit('activate', req.hostname);
-  }, 1500);
+  }, 500);
 })
 
 // Upload
@@ -589,20 +588,7 @@ app.post('/upload', function(req, res) {
 
   form.on('file', function(name, file) {
     debug_log('Uploaded ' + file.path);
-
-    if (jogWindow === null) {
-      createJogWindow();
-      jogWindow.show()
-      // workaround from https://github.com/electron/electron/issues/2867#issuecomment-261067169 to make window pop over for focus
-      jogWindow.setAlwaysOnTop(true);
-      jogWindow.focus();
-      jogWindow.setAlwaysOnTop(false);
-    } else {
-      jogWindow.show()
-      jogWindow.setAlwaysOnTop(true);
-      jogWindow.focus();
-      jogWindow.setAlwaysOnTop(false);
-    }
+    showJogWindow()
     readFile(file.path)
   });
 
@@ -650,27 +636,33 @@ io.on("connection", function(socket) {
     }
   }
 
-  var interval = setInterval(function() {
+
+  // Global Update loop
+  clearInterval(frontEndUpdateLoop);
+  frontEndUpdateLoop = setInterval(function() {
     io.sockets.emit("status", status);
-    // v1.0.210 - testing if this caused hangs
-    // if (jogWindow) {
-    //   if (status.comms.connectionStatus == 0) {
-    //     jogWindow.setOverlayIcon(nativeImage.createFromPath(iconNoComm), 'Not Connected');
-    //   } else if (status.comms.connectionStatus == 1) {
-    //     jogWindow.setOverlayIcon(nativeImage.createFromPath(iconStop), 'Port Connected');
-    //   } else if (status.comms.connectionStatus == 2) {
-    //     jogWindow.setOverlayIcon(nativeImage.createFromPath(iconStop), 'Connected, and Firmware');
-    //   } else if (status.comms.connectionStatus == 3) {
-    //     jogWindow.setOverlayIcon(nativeImage.createFromPath(iconPlay), 'Playing');
-    //   } else if (status.comms.connectionStatus == 4) {
-    //     jogWindow.setOverlayIcon(nativeImage.createFromPath(iconPause), 'Paused');
-    //   } else if (status.comms.connectionStatus == 5) {
-    //     jogWindow.setOverlayIcon(nativeImage.createFromPath(iconAlarm), 'Alarm');
-    //   }
-    // }
-  }, 50);
+  }, 100);
 
+  socket.on("scannetwork", function(data) {
+    scanForTelnetDevices(data)
+  })
 
+  socket.on("openFile", function(data) {
+    dialog.showOpenDialog(jogWindow, {
+      properties: ['openFile']
+    }).then(result => {
+      console.log(result.canceled)
+      console.log(result.filePaths)
+      var openFilePath = result.filePaths[0];
+      if (openFilePath !== "") {
+        debug_log("path" + openFilePath);
+        readFile(openFilePath);
+      }
+
+    }).catch(err => {
+      console.log(err)
+    })
+  })
 
   socket.on("openbuilds", function(data) {
     const {
@@ -711,15 +703,14 @@ io.on("connection", function(socket) {
     const {
       shell
     } = require('electron')
-    shell.openExternal('https://cam.bobscnc.com')
+    shell.openExternal('https://cam.openbuilds.com')
   });
-
 
   socket.on("opendocs", function(data) {
     const {
       shell
     } = require('electron')
-    shell.openExternal('https://www.bobscnc.com/pages/basic-suite-software-videos')
+    shell.openExternal('https://docs.openbuilds.com/')
   });
 
   socket.on("openforum", function(data) {
@@ -738,10 +729,21 @@ io.on("connection", function(socket) {
   });
 
   socket.on("maximize", function(data) {
+    if (jogWindow.isFullScreen()) {
+      jogWindow.setFullScreen(false);
+    }
     if (jogWindow.isMaximized()) {
       jogWindow.unmaximize();
     } else {
       jogWindow.maximize();
+    }
+  });
+
+  socket.on("fullscreen", function(data) {
+    if (jogWindow.isFullScreen()) {
+      jogWindow.setFullScreen(false);
+    } else {
+      jogWindow.setFullScreen(true);
     }
   });
 
@@ -772,11 +774,16 @@ io.on("connection", function(socket) {
     var file = data.file;
     var board = data.board
     var customImg = data.customImg
+    console.log(__dirname, file, data.file)
     if (customImg) {
-      var firmwarePath = firmwareImagePath
+      var firmwarePath = data.file
     } else {
       var firmwarePath = path.join(__dirname, file)
     }
+
+    console.log("-------------------------------------------")
+    console.log(firmwarePath)
+    console.log("-------------------------------------------")
 
     const Avrgirl = require('avrgirl-arduino');
 
@@ -787,12 +794,11 @@ io.on("connection", function(socket) {
       debug_log('ERROR: Machine connection not open!');
     }
 
-    function flashGrblCallback(debugString, port, file) {
+    function flashGrblCallback(debugString, port) {
       debug_log(port, debugString);
       var data = {
         'port': port,
-        'string': debugString,
-        'file': file
+        'string': debugString
       }
       io.sockets.emit("progStatus", data);
     }
@@ -803,7 +809,7 @@ io.on("connection", function(socket) {
         port: port,
         debug: function(debugString) {
           var port = this.connection.options.port;
-          flashGrblCallback(debugString, port, file)
+          flashGrblCallback(debugString, port)
         }
       });
 
@@ -837,28 +843,40 @@ io.on("connection", function(socket) {
   })
 
   socket.on("writeInterfaceUsbDrive", function(data) {
-    //data = mountpoint dest
+
+    //data.drive = mountpoint dest
+    //data.controller = type of controller
+    if (data.controller == "blackbox4x" || data.controller == "genericgrbl") {
+      var probesrc = path.join(__dirname, './app/wizards/interface/PROBE/');
+      var profilesrc = path.join(__dirname, './app/wizards/interface/PROFILESGRBL/');
+    } else if (data.controller == "blackboxx32" || data.controller == "genericgrblhal") {
+      var probesrc = path.join(__dirname, './app/wizards/interface/PROBE/');
+      var profilesrc = path.join(__dirname, './app/wizards/interface/PROFILESHAL/');
+    }
+
+    var probedest = path.join(data.drive, "/PROBE/");
+    var profiledest = path.join(data.drive, "/PROFILES/");
+
     var ncp = require('ncp').ncp;
     ncp.limit = 16;
 
     var output = {
       'command': 'Interface USB Drive',
-      'response': "Starting to copy data to " + data,
+      'response': "Starting to copy data to " + data.drive,
       'type': 'info'
     }
     io.sockets.emit('data', output);
 
     var errorCount = 0;
 
-    var src = path.join(__dirname, './app/wizards/interface/PROBE/');
-    var dest = path.join(data, "/PROBE/");
 
-    ncp(src, dest,
+
+    ncp(probesrc, probedest,
       function(err) {
         if (err) {
           var output = {
             'command': 'Interface USB Drive',
-            'response': "Failed to copy PROBE macros to " + dest + ":  " + JSON.stringify(err),
+            'response': "Failed to copy PROBE macros to " + probedest + ":  " + JSON.stringify(err),
             'type': 'error'
           }
           io.sockets.emit('data', output);
@@ -866,22 +884,20 @@ io.on("connection", function(socket) {
         } else {
           var output = {
             'command': 'Interface USB Drive',
-            'response': "Copied PROBE macros to " + dest + " succesfully!",
+            'response': "Copied PROBE macros to " + probedest + " succesfully!",
             'type': 'success'
           }
           io.sockets.emit('data', output);
         }
       });
 
-    var src = path.join(__dirname, './app/wizards/interface/PROFILES/');
-    var dest = path.join(data, "/PROFILES/");
 
-    ncp(src, dest,
+    ncp(profilesrc, profiledest,
       function(err) {
         if (err) {
           var output = {
             'command': 'Interface USB Drive',
-            'response': "Failed to copy MACHINE PROFILES to " + dest + ":  " + JSON.stringify(err),
+            'response': "Failed to copy MACHINE PROFILES to " + profiledest + ":  " + JSON.stringify(err),
             'type': 'error'
           }
           io.sockets.emit('data', output);
@@ -889,7 +905,7 @@ io.on("connection", function(socket) {
         } else {
           var output = {
             'command': 'Interface USB Drive',
-            'response': "Copied MACHINE PROFILES to " + dest + " succesfully!",
+            'response': "Copied MACHINE PROFILES to " + profiledest + " succesfully!",
             'type': 'success'
           }
           io.sockets.emit('data', output);
@@ -900,7 +916,7 @@ io.on("connection", function(socket) {
       if (errorCount == 0) {
         var output = {
           'command': 'Interface USB Drive',
-          'response': "Finished copying supporting files to Drive " + data,
+          'response': "Finished copying supporting files to Drive " + data.drive,
           'type': 'success'
         }
         io.sockets.emit('data', output);
@@ -911,20 +927,27 @@ io.on("connection", function(socket) {
         }
         io.sockets.emit('data', output);
       }
-    }, 1000);
+    }, 500);
   });
 
   socket.on("connectTo", function(data) { // If a user picks a port to connect to, open a Node SerialPort Instance to it
 
     if (status.comms.connectionStatus < 1) {
-      data = data.split(",");
-      console.log("Connecting via " + data[0] + " to " + data[1] + " at baud " + data[2]);
 
-      port = new SerialPort(data[1], {
-        baudRate: parseInt(data[2])
-      });
+      if (data.type == "usb") {
+        console.log("connect", "Connecting to " + data.port + " via " + data.type);
+        port = new SerialPort({
+          path: data.port,
+          baudRate: parseInt(data.baud),
+          hupcl: false // Don't set DTR - useful for X32 Reset
+        });
+      } else if (data.type == "telnet") {
+        console.log("connect", "Connecting to " + data.ip + " via " + data.type);
+        port = net.connect(23, data.ip);
+        port.isOpen = true;
+      }
 
-      parser = port.pipe(new Readline({
+      parser = port.pipe(new ReadlineParser({
         delimiter: '\r\n'
       }));
 
@@ -954,7 +977,26 @@ io.on("connection", function(socket) {
       });
 
 
-      port.on("open", function() {
+      port.on("ready", function(e) {
+        portOpened(port, data)
+      });
+
+      port.on("open", function(e) {
+        portOpened(port, data)
+      });
+
+      port.on("close", function() { // open errors will be emitted as an error event
+        debug_log("PORT INFO: Port closed");
+        var output = {
+          'command': 'disconnect',
+          'response': "PORT INFO: Port closed",
+          'type': 'info'
+        }
+        io.sockets.emit('data', output);
+        status.comms.connectionStatus = 0;
+      }); // end port.onclose
+
+      function portOpened(port, data) {
         debug_log("PORT INFO: Connected to " + port.path + " at " + port.baudRate);
         var output = {
           'command': 'connect',
@@ -971,7 +1013,7 @@ io.on("connection", function(socket) {
           'type': 'info'
         }
         io.sockets.emit('data', output);
-        addQRealtime("\n"); // this causes smoothie to send the welcome string
+        addQRealtime("\n"); // this causes smoothie and grblHAL to send the welcome string
 
         var output = {
           'command': 'connect',
@@ -1007,7 +1049,6 @@ io.on("connection", function(socket) {
             debug_log("Sent: version");
           }
         }, config.grblWaitTime * 2000);
-
 
         setTimeout(function() {
           if (status.machine.firmware.type.length > 1) {
@@ -1062,10 +1103,18 @@ io.on("connection", function(socket) {
               io.sockets.emit('data', output);
               stopPort();
             } else {
-              var output = {
-                'command': 'connect',
-                'response': "Firmware Detected:  " + status.machine.firmware.type + " version " + status.machine.firmware.version + " on " + port.path,
-                'type': 'success'
+              if (data.type == "usb") {
+                var output = {
+                  'command': 'connect',
+                  'response': "Firmware Detected:  " + status.machine.firmware.type + " version " + status.machine.firmware.version + " on " + port.path,
+                  'type': 'success'
+                }
+              } else if (data.type = "telnet") {
+                var output = {
+                  'command': 'connect',
+                  'response': "Firmware Detected:  " + status.machine.firmware.type + " version " + status.machine.firmware.version + " on " + data.ip,
+                  'type': 'success'
+                }
               }
               io.sockets.emit('data', output);
             }
@@ -1074,20 +1123,16 @@ io.on("connection", function(socket) {
 
 
         status.comms.connectionStatus = 2;
-        status.comms.interfaces.activePort = port.path;
-        status.comms.interfaces.activeBaud = port.baudRate;
-      }); // end port .onopen
-
-      port.on("close", function() { // open errors will be emitted as an error event
-        debug_log("PORT INFO: Port closed");
-        var output = {
-          'command': 'disconnect',
-          'response': "PORT INFO: Port closed",
-          'type': 'info'
+        if (data.type == "usb") {
+          status.comms.interfaces.activePort = port.path;
+          status.comms.interfaces.type = data.type
+          status.comms.interfaces.activeBaud = port.baudRate;
+        } else if (data.type = "telnet") {
+          status.comms.interfaces.activePort = data.ip;
+          status.comms.interfaces.type = data.type
+          status.comms.interfaces.activeBaud = "net";
         }
-        io.sockets.emit('data', output);
-        status.comms.connectionStatus = 0;
-      }); // end port.onclose
+      }
 
       parser.on("data", function(data) {
         //console.log(data)
@@ -1260,8 +1305,15 @@ io.on("connection", function(socket) {
         if (data.indexOf("Grbl") === 0) { // Check if it's Grbl
           debug_log(data)
           status.comms.blocked = false;
-          status.machine.firmware.type = "grbl";
-          status.machine.firmware.version = data.substr(5, 4); // get version
+          if (data.indexOf("GrblHAL") === 0) {
+            status.machine.firmware.type = "grbl";
+            status.machine.firmware.platform = "grblHAL"
+            status.machine.firmware.version = data.substr(8, 4); // get version
+          } else {
+            status.machine.firmware.type = "grbl";
+            status.machine.firmware.platform = "gnea"
+            status.machine.firmware.version = data.substr(5, 4); // get version
+          }
           if (parseFloat(status.machine.firmware.version) < 1.1) { // If version is too old
             if (status.machine.firmware.version.length < 3) {
               debug_log('invalid version string, stay connected')
@@ -1281,18 +1333,20 @@ io.on("connection", function(socket) {
             }
           }
           status.machine.firmware.date = "";
-          debug_log("GRBL detected");
-          setTimeout(function() {
-            io.sockets.emit('grbl')
-            io.sockets.emit('errorsCleared', true);
-          }, 600)
-          // Start interval for status queries
-          clearInterval(statusLoop);
-          statusLoop = setInterval(function() {
-            if (status.comms.connectionStatus > 0) {
-              addQRealtime("?");
-            }
-          }, 100);
+          // debug_log("GRBL detected");
+          // setTimeout(function() {
+          //   io.sockets.emit('grbl')
+          //   //v1.0.318 - commented out as a test - too many normal alarms clear prematurely
+          //   //io.sockets.emit('errorsCleared', true);
+          // }, 600)
+          // // Start interval for status queries
+          // clearInterval(statusLoop);
+          // statusLoop = setInterval(function() {
+          //   if (status.comms.connectionStatus > 0) {
+          //     addQRealtime("?");
+          //   }
+          // }, 200);
+          status.machine.modals.homedRecently = false;
         } else if (data.indexOf("LPC176") >= 0) { // LPC1768 or LPC1769 should be Smoothieware
           status.comms.blocked = false;
           debug_log("Smoothieware detected");
@@ -1407,7 +1461,6 @@ io.on("connection", function(socket) {
 
 
 
-
         if (command) {
           command = command.replace(/(\r\n|\n|\r)/gm, "");
           // debug_log("CMD: " + command + " / DATA RECV: " + data.replace(/(\r\n|\n|\r)/gm, ""));
@@ -1458,6 +1511,17 @@ io.on("connection", function(socket) {
   socket.on('forceQueue', function(data) {
     send1Q();
   });
+
+  socket.on('serialInject', function(data) {
+    // Inject a live command into Serial stream in real-time (dev tool) even while a job is running, etc (straight Port.write from machineSend)
+    machineSend(data, true);
+  });
+
+  socket.on("dump", function(data) {
+    console.log(queuePointer);
+    console.log(gcodeQueue);
+    console.log(sentBuffer);
+  })
 
   socket.on('runCommand', function(data) {
     debug_log('Run Command (' + data.replace('\n', '|') + ')');
@@ -1863,9 +1927,13 @@ io.on("connection", function(socket) {
           debug_log('Clearing Lockout');
           switch (status.machine.firmware.type) {
             case 'grbl':
+              clearInterval(queueCounter);
+              jogWindow.setProgressBar(0);
               addQRealtime(String.fromCharCode(0x18)); // ctrl-x
-              addQRealtime('$X\n');
-              debug_log('Sent: $X');
+              setTimeout(function() {
+                addQRealtime('$X\n');
+                debug_log('Sent: $X');
+              }, 500);
               status.comms.blocked = false;
               status.comms.paused = false;
               break;
@@ -1903,6 +1971,9 @@ io.on("connection", function(socket) {
       debug_log('ERROR: Machine connection not open!');
     }
   });
+
+
+
 
 });
 
@@ -1965,6 +2036,7 @@ function machineSend(gcode, realtime) {
       io.sockets.emit("queueCount", data);
       // debug_log(gcode)
       port.write(gcode);
+      debug_log("SENT: " + gcode)
     }
   } else {
     debug_log("PORT NOT OPEN")
@@ -2010,6 +2082,7 @@ function runJob(object) {
         // Start interval for qCount messages to socket clients
         queueCounter = setInterval(function() {
           status.comms.queue = gcodeQueue.length - queuePointer
+          jogWindow.setProgressBar(queuePointer / gcodeQueue.length)
         }, 500);
         send1Q(); // send first line
         status.comms.connectionStatus = 3;
@@ -2024,6 +2097,7 @@ function runJob(object) {
 function stopPort() {
   clearInterval(queueCounter);
   clearInterval(statusLoop);
+  jogWindow.setProgressBar(0);
   status.comms.interfaces.activePort = false;
   status.comms.interfaces.activeBaud = false;
   status.comms.connectionStatus = 0;
@@ -2033,11 +2107,17 @@ function stopPort() {
   status.machine.firmware.buffer = "";
   gcodeQueue.length = 0;
   sentBuffer.length = 0; // dump bufferSizes
-  port.drain(port.close());
+  // port.drain(port.close());
+
+  if (status.comms.interfaces.type == "usb") {
+    port.drain(port.close());
+  } else if (status.comms.interfaces.type == "telnet") {
+    port.destroy();
+  }
 }
 
 function parseFeedback(data) {
-  debug_log(data)
+  //debug_log(data)
   var state = data.substring(1, data.search(/(,|\|)/));
   status.comms.runStatus = state
   if (state == "Alarm") {
@@ -2065,7 +2145,7 @@ function parseFeedback(data) {
       xOffset = parseFloat(wco[0]).toFixed(config.posDecimals);
       yOffset = parseFloat(wco[1]).toFixed(config.posDecimals);
       zOffset = parseFloat(wco[2]).toFixed(config.posDecimals);
-      if (has4thAxis) {
+      if (status.machine.has4thAxis) {
         aOffset = parseFloat(wco[3]).toFixed(config.posDecimals);
         status.machine.position.offset.x = parseFloat(xOffset);
         status.machine.position.offset.y = parseFloat(yOffset);
@@ -2105,10 +2185,10 @@ function parseFeedback(data) {
       if (wPos.length > 3) {
         if (aPos !== parseFloat(wPos[3]).toFixed(config.posDecimals)) {
           aPos = parseFloat(wPos[3]).toFixed(config.posDecimals);
-          has4thAxis = true;
+          status.machine.has4thAxis = true;
         }
       }
-      if (has4thAxis) {
+      if (status.machine.has4thAxis) {
         status.machine.position.work.x = parseFloat(xPos);
         status.machine.position.work.y = parseFloat(yPos);
         status.machine.position.work.z = parseFloat(zPos);
@@ -2133,10 +2213,10 @@ function parseFeedback(data) {
       if (mPos.length > 3) {
         if (aPos !== parseFloat(mPos[3]).toFixed(config.posDecimals)) {
           aPos = parseFloat(mPos[3]).toFixed(config.posDecimals);
-          has4thAxis = true;
+          status.machine.has4thAxis = true;
         }
       }
-      if (has4thAxis) {
+      if (status.machine.has4thAxis) {
         status.machine.position.work.x = parseFloat(parseFloat(xPos - status.machine.position.offset.x).toFixed(config.posDecimals));
         status.machine.position.work.y = parseFloat(parseFloat(yPos - status.machine.position.offset.y).toFixed(config.posDecimals));
         status.machine.position.work.z = parseFloat(parseFloat(zPos - status.machine.position.offset.z).toFixed(config.posDecimals));
@@ -2265,10 +2345,10 @@ function gotModals(data) {
   data = data.split(/:|\[|\]/)[2].split(" ")
 
   for (i = 0; i < data.length; i++) {
- // if (data[i] == "G0") {
- //   status.machine.modals.motionmode = "G0";
- // }
-     // if (data[i] == "G1") {
+    // if (data[i] == "G0") {
+    //   status.machine.modals.motionmode = "G0";
+    // }
+    // if (data[i] == "G1") {
     //   status.machine.modals.motionmode = "G1";
     // }
     // if (data[i] == "G2") {
@@ -2380,7 +2460,7 @@ function gotModals(data) {
     //   status.machine.modals.programmode = "M30";
     // }
 
-       //   status.machine.modals.spindlestate = "M5"; // M3, M4, M5
+    //   status.machine.modals.spindlestate = "M5"; // M3, M4, M5
     if (data[i] == "M3") {
       status.machine.modals.spindlestate = "M3";
     }
@@ -2470,7 +2550,11 @@ function BufferSpace(firmware) {
     total += sentBuffer[i].length;
   }
   if (firmware == "grbl") {
-    return GRBL_RX_BUFFER_SIZE - total;
+    if (status.machine.firmware.platform == "grblHAL") {
+      return GRBLHAL_RX_BUFFER_SIZE - total;
+    } else {
+      return GRBL_RX_BUFFER_SIZE - total;
+    }
   }
 }
 
@@ -2521,6 +2605,7 @@ function send1Q() {
       }
       status.comms.connectionStatus = 2; // finished
       clearInterval(queueCounter);
+      jogWindow.setProgressBar(0);
       gcodeQueue.length = 0; // Dump the Queye
       queuePointer = 0;
       status.comms.connectionStatus = 2; // finished
@@ -2541,11 +2626,15 @@ function addQToEnd(gcode) {
   // if (gcode.indexOf("G54") != -1 || gcode.indexOf("G55") != -1 || gcode.indexOf("G56") != -1 || gcode.indexOf("G57") != -1 || gcode.indexOf("G58") != -1 || gcode.indexOf("G59") != -1) {
   //   gcodeQueue.push("$G");
   // }
-  if (new RegExp(modalCommands.join("|")).test(gcode)) {
+  var testGcode = gcode.toUpperCase()
+  if (testGcode.indexOf("$H") != -1) {
+    status.machine.modals.homedRecently = true;
+  }
+  if (new RegExp(modalCommands.join("|")).test(testGcode)) {
     gcodeQueue.push("$G");
   }
-  if (gcode.match(/T([\d.]+)/i)) { 
-       gcodeQueue.push("$G");
+  if (gcode.match(/T([\d.]+)/i)) {
+    gcodeQueue.push("$G");
   }
 }
 
@@ -2556,6 +2645,16 @@ function addQToStart(gcode) {
 function addQRealtime(gcode) {
   // realtime command skip the send1Q as it doesnt respond with an ok
   machineSend(gcode, true);
+}
+
+function showJogWindow() {
+  if (jogWindow === null) {
+    createJogWindow();
+  }
+  jogWindow.show()
+  jogWindow.setAlwaysOnTop(true);
+  jogWindow.focus();
+  jogWindow.setAlwaysOnTop(false);
 }
 
 // Electron
@@ -2604,22 +2703,8 @@ if (isElectron()) {
       }
 
       if (lauchGUI) {
-        if (jogWindow === null) {
-          createJogWindow();
-          jogWindow.show()
-          jogWindow.setAlwaysOnTop(true);
-          jogWindow.focus();
-          jogWindow.setAlwaysOnTop(false);
-        } else {
-          jogWindow.show()
-          jogWindow.setAlwaysOnTop(true);
-          jogWindow.focus();
-          jogWindow.setAlwaysOnTop(false);
-        }
+        showJogWindow()
       }
-
-
-
     })
     // Create myWindow, load the rest of the app, etc...
     app.on('ready', () => {})
@@ -2644,22 +2729,11 @@ if (isElectron()) {
         status.driver.operatingsystem = 'windows';
       }
 
-      
-        if (jogWindow === null) {
-          createJogWindow();
-          jogWindow.show()
-          jogWindow.setAlwaysOnTop(true);
-          jogWindow.focus();
-          jogWindow.setAlwaysOnTop(false);
-        } else {
-          jogWindow.show()
-          jogWindow.setAlwaysOnTop(true);
-          jogWindow.focus();
-          jogWindow.setAlwaysOnTop(false);
-        }
+      if (process.platform == 'darwin' || uploadedgcode.length > 1) {
+        showJogWindow()
       }
 
-    
+    }
 
     function createMenu() {
 
@@ -2738,21 +2812,10 @@ if (isElectron()) {
           label: 'Open User Interface (GUI)',
           click() {
             // debug_log("Clicked Systray")
-            if (jogWindow === null) {
-              createJogWindow();
-              jogWindow.show()
-              jogWindow.setAlwaysOnTop(true);
-              jogWindow.focus();
-              jogWindow.setAlwaysOnTop(false);
-            } else {
-              jogWindow.show()
-              jogWindow.setAlwaysOnTop(true);
-              jogWindow.focus();
-              jogWindow.setAlwaysOnTop(false);
-            }
+            showJogWindow()
           }
         }, {
-          label: 'Quit Basic SENDER (Disables all integration until started again)',
+          label: 'Quit OpenBuilds CONTROL (Disables all integration until started again)',
           click() {
             if (appIcon) {
               appIcon.destroy();
@@ -2763,36 +2826,14 @@ if (isElectron()) {
         if (appIcon) {
           appIcon.on('click', function() {
             // debug_log("Clicked Systray")
-            if (jogWindow === null) {
-              createJogWindow();
-              jogWindow.show()
-              jogWindow.setAlwaysOnTop(true);
-              jogWindow.focus();
-              jogWindow.setAlwaysOnTop(false);
-            } else {
-              jogWindow.show()
-              jogWindow.setAlwaysOnTop(true);
-              jogWindow.focus();
-              jogWindow.setAlwaysOnTop(false);
-            }
+            showJogWindow()
           })
         }
 
         if (appIcon) {
           appIcon.on('balloon-click', function() {
             // debug_log("Clicked Systray")
-            if (jogWindow === null) {
-              createJogWindow();
-              jogWindow.show()
-              jogWindow.setAlwaysOnTop(true);
-              jogWindow.focus();
-              jogWindow.setAlwaysOnTop(false);
-            } else {
-              jogWindow.show()
-              jogWindow.setAlwaysOnTop(true);
-              jogWindow.focus();
-              jogWindow.setAlwaysOnTop(false);
-            }
+            showJogWindow()
           })
         }
 
@@ -2826,7 +2867,7 @@ if (isElectron()) {
       // Create the browser window.
       jogWindow = new BrowserWindow({
         // 1366 * 768 == minimum to cater for
-        width: 1025,
+        width: 1000,
         height: 850,
         fullscreen: false,
         center: true,
@@ -2843,6 +2884,7 @@ if (isElectron()) {
         experimentalFeatures: true,
         experimentalCanvasFeatures: true,
         offscreen: true,
+        backgroundColor: "#fff"
       });
 
       jogWindow.setOverlayIcon(nativeImage.createFromPath(iconPath), 'Icon');
@@ -2866,10 +2908,7 @@ if (isElectron()) {
         jogWindow = null;
       });
       jogWindow.once('ready-to-show', () => {
-        jogWindow.show()
-        jogWindow.setAlwaysOnTop(true);
-        jogWindow.focus();
-        jogWindow.setAlwaysOnTop(false);
+        showJogWindow()
       })
     }
 
@@ -2966,6 +3005,7 @@ function stop(data) {
         break;
     }
     clearInterval(queueCounter);
+    jogWindow.setProgressBar(0);
     status.comms.queue = 0
     queuePointer = 0;
     gcodeQueue.length = 0; // Dump the queue
@@ -3061,7 +3101,7 @@ function startChrome() {
 
 // grab latest firmware.bin for Interface on startup
 
-/*var file = fs.createWriteStream(path.join(uploadsDir, "firmware.bin"));
+var file = fs.createWriteStream(path.join(uploadsDir, "firmware.bin"));
 https.get("https://raw.githubusercontent.com/OpenBuilds/firmware/main/interface/firmware.bin", function(response) {
   response.pipe(file);
   file.on('finish', function() {
@@ -3104,7 +3144,7 @@ https.get("https://raw.githubusercontent.com/OpenBuilds/firmware/main/interface/
 
     });
   });
-}) */
+})
 
 
 
@@ -3209,5 +3249,190 @@ function flashInterface(data) {
 }
 // end Interface Programming
 
+function flashGrblHal(data) {
+
+  console.log(JSON.stringify(data))
+
+  status.comms.connectionStatus = 6;
+
+  var port = data.port;
+  var file = data.file;
+  var customImg = data.customImg
+  var erase = data.erase
+
+  if (customImg == true) {
+    var firmwarePath = firmwareImagePath
+  } else {
+    var firmwarePath = path.join(__dirname, file)
+  }
+
+  console.log("Flashing BlackBoxX32 on " + port + " with file: " + path.resolve(firmwarePath))
+
+  var data = {
+    'port': port,
+    'string': "[Starting...]"
+  }
+  io.sockets.emit("progStatus", data);
+
+  var esptool_opts = [
+    '--port', port,
+    '--baud', '460800',
+    '--before', 'default_reset',
+    '--after', 'hard_reset',
+    '--chip', 'esp32',
+    'write_flash',
+    '--flash_mode', 'dio',
+    '--flash_size', 'detect',
+    '--flash_freq', '40m',
+    '0x1000', path.join(__dirname, "./grblhal-bootloader.bin"),
+    '0x8000', path.join(__dirname, "./grblhal-partition-table.bin"),
+    '0x10000', path.resolve(firmwarePath)
+  ];
+
+  if (erase == true) {
+    esptool_opts.push('--erase-all');
+  }
+
+  if (process.platform != 'win32') {
+    fs.chmodSync(path.join(__dirname, "./esptool.py"), 0o755);
+    var child = spawn(path.join(__dirname, "./esptool.py"), esptool_opts);
+  } else if (process.platform == 'win32') {
+    var child = spawn(path.join(__dirname, "./esptool.exe"), esptool_opts);
+  }
+
+  child.stdout.on('data', function(data) {
+    var debugString = data.toString();
+    console.log(debugString)
+    var data = {
+      'port': port,
+      'string': debugString
+    }
+    io.sockets.emit("progStatus", data);
+    status.comms.connectionStatus = 6;
+
+  });
+
+  child.stderr.on('data', function(data) {
+    var debugString = data.toString();
+    console.log(debugString)
+    var data = {
+      'port': port,
+      'string': debugString
+    }
+    io.sockets.emit("progStatus", data);
+    status.comms.connectionStatus = 6;
+
+  });
+
+  child.on('close', (code) => {
+    var data = {
+      'port': port,
+      'string': `[exit:` + code + `]`,
+      'code': code
+    }
+    io.sockets.emit("progStatus", data);
+    status.comms.connectionStatus = 0;
+
+  });
+}
+// end BlackBoxX32 Programming
+
+
+// LAN Scanner for BlackBox X32, Interface, SwitchBlox etc //
+function scanForTelnetDevices(range) {
+  //var localNetwork = ip.address().split('.');
+  //var network = localNetwork[0] + '.' + localNetwork[1] + '.' + localNetwork[2];
+  //var range = network + ".1-" + network + ".254"
+
+  var networkDevices = []
+  oldiplist = status.comms.interfaces.networkDevices;
+  const telnetScanOptions = {
+    target: range,
+    port: '23',
+    status: 'TROU', // Timeout, Refused, Open, Unreachable
+    banner: true
+  };
+
+  var output = {
+    'command': 'network',
+    'response': "Starting network scan for: " + telnetScanOptions.target,
+    'type': 'success'
+  }
+  io.sockets.emit('data', output);
+
+  new Evilscan(telnetScanOptions, (err, scan) => {
+
+    if (err) {
+      var output = {
+        'command': 'network',
+        'response': "Network Scan error: " + err,
+        'type': 'success'
+      }
+      io.sockets.emit('data', output);
+      //console.log(err);
+      return;
+    }
+
+    scan.on('result', data => {
+      // fired when item is matching options
+      //console.log(data);
+      if (data.status == "open") {
+        var type = false;
+        if (data.banner.indexOf("GrblHAL") != -1) {
+          type = "grblHAL"
+        } else if (data.banner.indexOf("Grbl") != -1) {
+          type = "grbl"
+        }
+        networkDevices.push({
+          ip: data.ip,
+          type: type,
+          banner: data.banner
+        })
+      }
+
+    });
+
+    scan.on('error', err => {
+      //throw new Error(data.toString());
+    });
+
+    scan.on('done', () => {
+      // finished !
+      networkDevices.sort((a, b) => {
+        return a.ip.split('.')[3] - b.ip.split('.')[3];
+      });
+      status.comms.interfaces.networkDevices = networkDevices;
+      if (!_.isEqual(status.comms.interfaces.networkDevices, oldiplist)) {
+        var newTelnetPorts = _.differenceWith(status.comms.interfaces.networkDevices, oldiplist, _.isEqual)
+        if (newTelnetPorts.length > 0) {
+          debug_log("Detected new device: " + newTelnetPorts[0].ip);
+        }
+        var removedTelnetPorts = _.differenceWith(oldiplist, status.comms.interfaces.networkDevices, _.isEqual)
+        if (removedTelnetPorts.length > 0) {
+          debug_log("No longer detecting device: " + removedTelnetPorts[0].ip);
+        }
+      }
+      oldiplist = status.comms.interfaces.networkDevices;
+      if (status.comms.interfaces.networkDevices.length > 0) {
+        var output = {
+          'command': 'network',
+          'response': "Network Scan completed. Found " + status.comms.interfaces.networkDevices.length + " devices.  Network addresses added to the Port selection dropdown.",
+          'type': 'success'
+        }
+      } else {
+        var output = {
+          'command': 'network',
+          'response': "Network Scan completed. Found " + status.comms.interfaces.networkDevices.length + " devices",
+          'type': 'error'
+        }
+      }
+
+      io.sockets.emit('data', output);
+    });
+
+    scan.run();
+  });
+}
+// end LAN Scanner
 
 process.on('exit', () => debug_log('exit'))
