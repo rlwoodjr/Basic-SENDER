@@ -42,6 +42,8 @@ var xmin = 0,
   ymin = 0,
   ymax = 207
 
+var machineCoordinateSpace = false;
+
 function drawWorkspace(xmin, xmax, ymin, ymax) {
 
   if (!xmin) xmin = 0;
@@ -130,23 +132,20 @@ function drawWorkspace(xmin, xmax, ymin, ymax) {
   }
 
   if (!disable3Drealtimepos) {
-    var coneGeo = new THREE.CylinderGeometry(0, 5, 40, 15, 1, false)
-    coneGeo.applyMatrix(new THREE.Matrix4().makeTranslation(0, -20, 0));
-
-    cone = new THREE.Mesh(coneGeo, new THREE.MeshPhongMaterial({
+    cone = new THREE.Mesh(new THREE.CylinderGeometry(0, 5, 40, 15, 1, false), new THREE.MeshPhongMaterial({
       color: 0x0000ff,
       specular: 0x0000ff,
       shininess: 00
     }));
     cone.overdraw = true;
     cone.rotation.x = -90 * Math.PI / 180;
-    cone.position.x = 0;
+    cone.position.x = 20;
     cone.position.y = 0;
     cone.position.z = 0;
     cone.material.opacity = 0.6;
     cone.material.transparent = true;
     cone.castShadow = false;
-    cone.visible = false;
+    cone.visible = true;
     cone.name = "Simulation Marker"
     workspace.add(cone)
   }
@@ -366,7 +365,6 @@ function init3D() {
   } else {
     console.log('No WebGL Support found on this computer! Disabled 3D Viewer - Sorry!');
     printLog("<span class='fg-darkRed'>[ ERROR ]</span>  <span class='fg-darkRed'>No WebGL Support found on this computer! Disabled 3D Viewer - Sorry!</span>")
-    printLog("<span class='fg-darkRed'>[ ERROR ]</span>  <span class='fg-darkRed'>" + getWebGLErrorMessage() + "</span>")
     $('#gcodeviewertab').hide()
     $('#consoletab').click()
     return false;
@@ -377,8 +375,16 @@ function init3D() {
 function animate() {
   if (!pauseAnimation) {
     camera.updateMatrixWorld();
-    simAnimate()
-    toolAnimate();
+    if (cone) {
+      // 160widthx200height offset?
+      if (cone.position) {
+        
+        var farside = $("#renderArea").offset().left
+        var topside = $("#renderArea").offset().top 
+        }
+        $("#conetext").css('left', farside + 45 +"px").css('top', topside  -25 +"px");
+  
+      }
 
     if (clearSceneFlag) {
       while (scene.children.length > 1) {
@@ -587,4 +593,83 @@ function resetView(object) {
       viewExtents(object);
     }
   }
+}
+
+
+function drawMachineCoordinates(status) {
+
+  if (laststatus != undefined && grblParams.$130 !== undefined && grblParams.$131 !== undefined && grblParams.$132 !== undefined) {
+    var machineCoordinatesBoxMaxX = status.machine.position.work.x - status.machine.position.offset.x
+    var machineCoordinatesBoxMaxY = status.machine.position.work.y - status.machine.position.offset.y
+    var machineCoordinatesBoxMaxZ = status.machine.position.work.z - status.machine.position.offset.z
+
+    var machineCoordinatesBoxMinX = machineCoordinatesBoxMaxX + parseFloat(grblParams.$130)
+    var machineCoordinatesBoxMinY = machineCoordinatesBoxMaxY + parseFloat(grblParams.$131)
+    var machineCoordinatesBoxMinZ = machineCoordinatesBoxMaxZ - parseFloat(grblParams.$132)
+
+    //console.log("X", machineCoordinatesBoxMinX, machineCoordinatesBoxMaxX)
+    //console.log("Y", machineCoordinatesBoxMinY, machineCoordinatesBoxMaxY)
+    //console.log("Z", machineCoordinatesBoxMinZ, machineCoordinatesBoxMaxZ)
+
+
+    workspace.remove(machineCoordinateSpace);
+    machineCoordinateSpace = new THREE.Group();
+
+    var material = new THREE.LineBasicMaterial({
+      color: 0x888888,
+      transparent: true,
+      opacity: 1
+    });
+
+    // Z min layer
+    var points = [];
+    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+    var geometry = new THREE.BufferGeometry().setFromPoints(points);
+    machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+    // Z max layer
+    var points = [];
+    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+    var geometry = new THREE.BufferGeometry().setFromPoints(points);
+    machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+    // corner f/l
+    var points = [];
+    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+    var geometry = new THREE.BufferGeometry().setFromPoints(points);
+    machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+    // corner f/r
+    var points = [];
+    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+    var geometry = new THREE.BufferGeometry().setFromPoints(points);
+    machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+    // corner r/l
+    var points = [];
+    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+    var geometry = new THREE.BufferGeometry().setFromPoints(points);
+    machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+    // corner r/r
+    var points = [];
+    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+    var geometry = new THREE.BufferGeometry().setFromPoints(points);
+    machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+    workspace.add(machineCoordinateSpace);
+  }
+
 }
