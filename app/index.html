@@ -31,10 +31,9 @@
         <span class="icon"><img src="splash.png" /></span>
         <span class="title" id="windowtitle">Basic SENDER</span>
         <div class="buttons" style="-webkit-app-region: no-drag">
-          <span title="Minimize" class="btn-custom" onclick="socket.emit('minimize')"><i class="fas fa-window-minimize"></i></span>
-          <span title="Maximize" class="btn-custom" onclick="socket.emit('maximize')"><i class="fas fa-window-maximize"></i></span>
-          <span title="Toggle Fullscreen" class="btn-custom" onclick="socket.emit('fullscreen')"><i class="fas fa-desktop"></i></span>
-          <span title="Close to Tray" class="btn-custom" onclick="socket.emit('minimisetotray')"><i class="fas fa-window-close"></i></span>
+          <span class="btn-min" onclick="socket.emit('minimize')"></span>
+          <span class="btn-max" onclick="socket.emit('maximize')"></span>
+          <span class="btn-close" onclick="socket.emit('minimisetotray')"></span>
         </div>
       </div>
       <div class="window-content" style="height: calc(100vh - 100px); overflow-x: hidden;  overflow-y: auto   !important;">
