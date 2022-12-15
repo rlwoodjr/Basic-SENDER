@@ -672,21 +672,21 @@ function initSocket() {
           if (!simRunning) {
             
 
-            if(pDiameter>0){
-              posa=status.machine.position.work.a*Math.PI/180
-              cone.rotation.x=-posa-Math.PI/2
-              cone.position.x = status.machine.position.work.x
-              cone.position.y = ((status.machine.position.work.z+20)*Math.sin(posa)).toFixed(4)
-              cone.position.z = (status.machine.position.work.z+20)*Math.cos(posa).toFixed(4)
-            }else{
-              cone.rotation.x=-Math.PI/2
-              cone.position.x = status.machine.position.work.x
-              cone.position.y = status.machine.position.work.y
-              cone.position.z = status.machine.position.work.z+20
-            }
-          
+              if(pDiameter>0){
+                posa=status.machine.position.work.a*Math.PI/180
+                cone.rotation.x=-posa-Math.PI/2
+                cone.position.x = status.machine.position.work.x
+                cone.position.y = ((status.machine.position.work.z+20)*Math.sin(posa)).toFixed(4)
+                cone.position.z = (status.machine.position.work.z+20)*Math.cos(posa).toFixed(4)
+              }else{
+                cone.rotation.x=-Math.PI/2
+                cone.position.x = status.machine.position.work.x
+                cone.position.y = status.machine.position.work.y
+                cone.position.z = status.machine.position.work.z+20
+              }
+            
 
-        }
+          }
         }
       }
     }
@@ -743,17 +743,14 @@ function initSocket() {
           case 'X':
             // console.log('PIN: X-LIMIT');
             $('#xpin').removeClass('success').addClass('alert').html('ON')
-            $('#xpinH').removeClass('success').addClass('alert').html('ON')
             break;
           case 'Y':
             // console.log('PIN: Y-LIMIT');
             $('#ypin').removeClass('success').addClass('alert').html('ON')
-            $('#ypinH').removeClass('success').addClass('alert').html('ON')
             break;
           case 'Z':
             // console.log('PIN: Z-LIMIT');
             $('#zpin').removeClass('success').addClass('alert').html('ON')
-            $('#zpinH').removeClass('success').addClass('alert').html('ON')
             break;
           case 'P':
             // console.log('PIN: PROBE');

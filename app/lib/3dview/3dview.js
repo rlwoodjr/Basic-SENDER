@@ -194,11 +194,11 @@ function sim() {
       if (simIdx == 0) {
         var posx = object.userData.linePoints[0].x; //- (sizexmax/2);
         var posy = object.userData.linePoints[0].y; //- (sizeymax/2);
-        var posz = object.userData.linePoints[0].z; //+ 20;
+        var posz = object.userData.linePoints[0].z + 20;
       } else {
         var posx = object.userData.linePoints[simIdx - 1].x; //- (sizexmax/2);
         var posy = object.userData.linePoints[simIdx - 1].y; //- (sizeymax/2);
-        var posz = object.userData.linePoints[simIdx - 1].z; //+ 20;
+        var posz = object.userData.linePoints[simIdx - 1].z + 20;
       }
 
       cone.position.x = posx;
@@ -322,6 +322,9 @@ function simstop() {
   // timefactor = 1;
   $('#simspeedval').text(timefactor);
   editor.gotoLine(0)
+  if (!disable3Drealtimepos) {
+    cone.visible = false;
+  }
   $("#conetext").hide();
   clearSceneFlag = true;
   cone.material = new THREE.MeshPhongMaterial({
