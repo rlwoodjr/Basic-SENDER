@@ -101,9 +101,9 @@ const grblStrings = require("./grblStrings.js");
 const {
   SerialPort
 } = require('serialport')
-const {
+const 
   ReadlineParser
-} = require('@serialport/parser-readline');
+ = require('@serialport/parser-readline');
 
 // telnet
 const net = require('net');
