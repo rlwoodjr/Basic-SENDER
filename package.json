@@ -1,13 +1,13 @@
 {
   "name": "bobscnc-basic-sender",
-  "version": "0.0.72",
+  "version": "0.0.73",
   "license": "AGPL-3.0",
   "description": "Basic SENDER - CNC Machine Interface Software",
   "author": "github.com/rlwoodjr <bob@bobscnc.com>",
   "devDependencies": {
     "copyfiles": "^2.3.0",
     "electron": "^9.2.0",
-    "electron-builder": "^22.8.0",
+    "electron-builder": "22.9.1",
     "ncp": "^2.0.0"
   },
   "dependencies": {
