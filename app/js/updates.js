@@ -22,7 +22,7 @@ function checkUpdate() {
         //var availVersion = release.name.substr(1)
         var currentVersion = laststatus.driver.version
         // console.log(versionCompare(availVersion, currentVersion), availVersion, currentVersion);
-          if (versionCompare(availVersion, currentVersion) == 1) {
+        if (versionCompare(availVersion, currentVersion) == 1) {
           console.log('outdated')
           time = 10
           printLog("<span class='fg-darkRed'>[ Update Available! ] </span><span class='fg-green'>Basic SENDER <code>" + availVersion + "</code>. is available now.</span>")
@@ -36,10 +36,10 @@ function checkUpdate() {
           setTimeout(function() {
             checkUpdate()
           }, 60 * 60 * 1000) // 60 mins
-        } 
-      }); 
-    }, 1000) 
-  } 
+        }
+      });
+    }, 1000)
+  }
 }
 
 

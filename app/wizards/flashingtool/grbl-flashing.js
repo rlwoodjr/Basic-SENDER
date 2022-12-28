@@ -70,158 +70,52 @@ function populateGrblBuilderToolForm() {
 
 // install bobscnc hex files
 function installFirmware(){
+
  
   if ($("#flashController").val() =="E3") {
-   var data = {
-      port: $("#portUSB2").val(),
-      file: "E3.hex",
-      board: "uno",
-      customImg: false
-      }
+    var filename= "E3.hex"
   }else if($("#flashController").val() =="E4"){
-   var data = {
-      port: $("#portUSB2").val(),
-      file: "E4.hex",
-      board: "uno",
-      customImg: false
-      }
+    var filename= "E4.hex"
   }else if($("#flashController").val() =="E3SS"){
-   var data = {
-      port: $("#portUSB2").val(),
-      file: "E3SS.hex",
-      board: "uno",
-      customImg: false
-      }
+    var filename= "E3SS.hex"
   }else if($("#flashController").val() =="E4SS"){
-   var data = {
-      port: $("#portUSB2").val(),
-      file: "E4SS.hex",
-      board: "uno",
-      customImg: false
-      }
+    var filename= "E4SS.hex"
   }else if($("#flashController").val() =="Evo3"){
-   var data = {
-      port: $("#portUSB2").val(),
-      file: "Evolution3.hex",
-      board: "uno",
-      customImg: false
-      }
+    var filename= "Evolution3.hex"
   }else if($("#flashController").val() =="Evo4"){
-   var data = {
-      port: $("#portUSB2").val(),
-      file: "Evolution4.hex",
-      board: "uno",
-      customImg: false
-      }
+    var filename= "Evolution4.hex"
   }else if($("#flashController").val() =="Evo5"){
-   var data = {
-      port: $("#portUSB2").val(),
-      file: "Evolution5.hex",
-      board: "uno",
-      customImg: false
-      }
+    var filename= "Evolution5.hex"
   }else if($("#flashController").val() =="Revo"){
-        var data = {
-           port: $("#portUSB2").val(),
-           file: "Revolution.hex",
-           board: "uno",
-           customImg: false
-           }
+    var filename= "Revolution.hex"
   }else if($("#flashController").val() =="KL733"){
-   var data = {
-      port: $("#portUSB2").val(),
-      file: "KL733.hex",
-      board: "uno",
-      customImg: false
-      }
+    var filename= "KL733.hex"
   }else if($("#flashController").val() =="KL744"){
-   var data = {
-      port: $("#portUSB2").val(),
-      file: "KL744.hex",
-      board: "uno",
-      customImg: false
-      }
+    var filename= "KL744.hex"
   }else if($("#flashController").val()=="KL744E"){
-   var data = {
-      port: $("#portUSB2").val(),
-      file: "KL744E.hex",
-      board: "uno",
-      customImg: false
-      }
+    var filename= "KL744E.hex"
   }else if($("#flashController").val()=="QuantumMini"){
-    var data = {
-        port: $("#portUSB2").val(),
-        file: "QuantumMini.hex",
-        board: "uno",
-        customImg: false
-        }
+    var filename= "QuantumMini.hex"
   }else if($("#flashController").val()=="Quantum"){
-    var data = {
-        port: $("#portUSB2").val(),
-        file: "Quantum.hex",
-        board: "uno",
-        customImg: false
-        }
+    var filename= "Quantum.hex"
   }else if($("#flashController").val()=="QuantumMax"){
-    var data = {
-        port: $("#portUSB2").val(),
-        file: "QuantumMax.hex",
-        board: "uno",
-        customImg: false
-        }
+    var filename = "QuantumMax.hex"
   }
 
-
+  var data = {
+    port: $("#portUSB2").val(),
+    file: filename,
+    board: "uno",
+    customImg: false
+    }
 
     socket.emit('flashGrbl', data)
 
-      
+  } 
 
-    
-
-  } if ($("#flashController").val() == "interface") {
-    var data = {
-      port: $("#portUSB2").val(),
-      file: "firmware.bin", // version that ships with Interface
-      board: $("#flashController").val()
-      
-    }
-
-    if ($("#interfaceFirmwareVer").val() == "custom") {
-      // custom image
-      if ($("#firmwareBin").val().length > 0) {
-        var form = document.getElementById('customFirmwareForm');
-        var formData = new FormData(form);
-        var xhr = new XMLHttpRequest();
-        xhr.onload = function() {
-          if (xhr.status == 200) {
-            $("#customFirmwareSet").html(xhr.response);
-            data.file = $("#firmwareBin").val();
-            socket.emit('flashInterface', data);
-          }
-        };
-        // Add any event handlers here...
-        xhr.open('POST', '/uploadCustomFirmware', true);
-        xhr.send(formData);
-      } else {
-        $('#controlTab').click();
-        $('#consoletab').click();
-        printLog("<span class='fg-red'>[ Flashing Firmware3 ] </span><span class='fg-red'><i class='fas fa-times fa-fw fg-red fa-fw'></i>You selected the option to use a custom firmware file, but failed to select a file to use for the operation. Please try again</span>")
-      }
-
-    } else {
-      // latest included firmware
-      socket.emit('flashInterface', data)
-    }
-
-
-  } else {
-    console.log("no controller selected")
-  }
 
 // erase eeprom (eeprom.hex) on bobscnc controller before loading hex file
 function startFlash(){
-  if ($("#flashController").val() != "interface") {
   var data = {
     port: $("#portUSB2").val(),
     file: "eepromclear.hex",
@@ -230,17 +124,17 @@ function startFlash(){
     }
   
     socket.emit('flashGrbl', data)
-  } 
 
+    
+    setTimeout(function() {
+      closePort(); // load firmware
+    }, 2000);
+  
+
+  setTimeout(function() {
+    installFirmware(); // load firmware
+  }, 10000);
 
 }
 
 
-function sleep(num) {
-  let now = new Date();
-  let stop = now.getTime() + num;
-  while(true) {
-      now = new Date();
-      if(now.getTime() > stop) return;
-  }
-}

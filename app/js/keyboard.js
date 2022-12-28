@@ -25,12 +25,21 @@ $(document).ready(function() {
     if (!keyboardShortcuts.froDec) {
       keyboardShortcuts.froDec = "a"
     }
+    if (!keyboardShortcuts.toInc) {
+      keyboardShortcuts.toInc = "w"
+    }
     if (!keyboardShortcuts.jogSpeedM) {
       keyboardShortcuts.jogSpeedM = "0"
     }
 
     if (!keyboardShortcuts.jogSpeedP) {
       keyboardShortcuts.jogSpeedP = "."
+    }
+    if (!keyboardShortcuts.aM) {
+      keyboardShortcuts.aM = "1"
+    }
+    if (!keyboardShortcuts.aP) {
+      keyboardShortcuts.aP = "2"
     }
 
 
@@ -42,11 +51,11 @@ $(document).ready(function() {
       yM: "down", //Y-
       zP: "pageup", //Z+
       zM: "pagedown", //Z-
-      aP: "+", //A+
-      aM: "-", //A-
+      aP: "2", //A+
+      aM: "1", //A-
 
-      stepP: "", // Increase Step Size
-      stepM: "", // Decrease Step Size
+      stepP: "+", // Increase Step Size
+      stepM: "-", // Decrease Step Size
       estop: "esc", // Abort / Emergency
       playpause: "space", // Start, Pause, Resume
       unlockAlarm: "end", // Clear Alarm
@@ -137,7 +146,7 @@ function bindKeys() {
       $(document).bind('keydown', keyboardShortcuts.xM, function(event) {
         event.preventDefault();
         if (!event.originalEvent.repeat) {
-          rippleEffect($('#xMprobe'), "#e21b1b")
+          rippleEffect($('.xM'), "#e21b1b")
           $('#xM').mousedown();
         }
       });
@@ -151,7 +160,7 @@ function bindKeys() {
       $(document).bind('keydown', keyboardShortcuts.xP, function(event) {
         event.preventDefault();
         if (!event.originalEvent.repeat) {
-          rippleEffect($('#xPprobe'), "#e21b1b")
+          rippleEffect($('.xP'), "#e21b1b")
           $('#xP').mousedown();
         }
       });
@@ -165,7 +174,7 @@ function bindKeys() {
       $(document).bind('keydown', keyboardShortcuts.yM, function(event) {
         event.preventDefault();
         if (!event.originalEvent.repeat) {
-          rippleEffect($('#yMprobe'), "#5de21b")
+          rippleEffect($('.yM'), "#5de21b")
           $('#yM').mousedown();
         }
       });
@@ -179,7 +188,7 @@ function bindKeys() {
       $(document).bind('keydown', keyboardShortcuts.yP, function(event) {
         event.preventDefault();
         if (!event.originalEvent.repeat) {
-          rippleEffect($('#yPprobe'), "#5de21b")
+          rippleEffect($('.yP'), "#5de21b")
           $('#yP').mousedown();
         }
       });
@@ -193,7 +202,7 @@ function bindKeys() {
       $(document).bind('keydown', keyboardShortcuts.zM, function(event) {
         event.preventDefault();
         if (!event.originalEvent.repeat) {
-          rippleEffect($('#zMprobe'), "#1ba1e2")
+          rippleEffect($('.zM'), "#1ba1e2")
           $('#zM').mousedown();
         }
       });
@@ -206,7 +215,7 @@ function bindKeys() {
       $(document).bind('keydown', keyboardShortcuts.zP, function(event) {
         event.preventDefault();
         if (!event.originalEvent.repeat) {
-          rippleEffect($('#zPprobe'), "#1ba1e2")
+          rippleEffect($('.zP'), "#1ba1e2")
           $('#zP').mousedown();
         }
       });
@@ -220,7 +229,7 @@ function bindKeys() {
       $(document).bind('keydown', keyboardShortcuts.aM, function(event) {
         event.preventDefault();
         if (!event.originalEvent.repeat) {
-       //   rippleEffect($('#zMprobe'), "#1ba1e2")
+          rippleEffect($('.aM'), "#fa6800")
           $('#aM').mousedown();
         }
       });
@@ -233,7 +242,7 @@ function bindKeys() {
       $(document).bind('keydown', keyboardShortcuts.aP, function(event) {
         event.preventDefault();
         if (!event.originalEvent.repeat) {
-         // rippleEffect($('#zPprobe'), "#1ba1e2")
+          rippleEffect($('.aP'), "#fa6800")
           $('#aP').mousedown();
         }
       });
@@ -242,9 +251,6 @@ function bindKeys() {
         $('#aP').mouseup();
       });
     }
-
-
-
     // END JOG KEYS
 
     if (keyboardShortcuts.stepM.length) {
@@ -343,7 +349,8 @@ function bindKeys() {
 
     // froInc: "", // Increase Feedrate Override
     // froDec: "", // Decrease Feedrate Override
-
+    // toInc: "", // Increase Tool Speed Override
+    // toDec: "" // Decrease Tool Speed Override
     if (keyboardShortcuts.froInc.length) {
       $(document).bind('keydown', keyboardShortcuts.froInc, function(e) {
         e.preventDefault();
@@ -360,6 +367,21 @@ function bindKeys() {
       });
     }
 
+    if (keyboardShortcuts.toInc.length) {
+      $(document).bind('keydown', keyboardShortcuts.toInc, function(e) {
+        e.preventDefault();
+        var newspeed = laststatus.machine.overrides.spindleOverride + 10
+        spindleOverride(newspeed)
+      });
+    }
+
+    if (keyboardShortcuts.toDec.length) {
+      $(document).bind('keydown', keyboardShortcuts.toDec, function(e) {
+        e.preventDefault();
+        var newspeed = laststatus.machine.overrides.spindleOverride - 10
+        spindleOverride(newspeed)
+      });
+    }
 
     if (keyboardShortcuts.jogSpeedM.length) {
       $(document).bind('keydown', keyboardShortcuts.jogSpeedM, function(e) {
@@ -375,7 +397,7 @@ function bindKeys() {
     if (keyboardShortcuts.jogSpeedP.length) {
       $(document).bind('keydown', keyboardShortcuts.jogSpeedP, function(e) {
         e.preventDefault();
-         var newVal = currentJogOverride + 10
+        var newVal = currentJogOverride + 10
         if (newVal > 100) {
           newVal = 100;
         }
@@ -386,7 +408,6 @@ function bindKeys() {
 
 
     localStorage.setItem('keyboardShortcuts', JSON.stringify(keyboardShortcuts));
-    console.log(keyboardShortcuts)
   }
 
 }
@@ -474,15 +495,14 @@ function keyboardShortcutsEditor() {
           <input type="text" class="keyboardshortcutinput" readonly id="zPnewKey" value="` + keyboardShortcuts.zP + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#zPnewKey').addClass('primary').addClass('newKeyAssignment')">
         </div>
       </div>
-
       <div class="row mb-1 ml-1 mr-1">
-        <label class="cell-sm-6"><i class="fas fa-arrow-down fg-brown fa-fw"></i>Jog A-</label>
+        <label class="cell-sm-6"><i class="fas fa-undo fg-orange fa-fw"></i> Jog A-</label>
         <div class="cell-sm-6">
           <input type="text" class="keyboardshortcutinput" readonly id="aMnewKey" value="` + keyboardShortcuts.aM + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#aMnewKey').addClass('primary').addClass('newKeyAssignment')">
         </div>
       </div>
       <div class="row mb-1 ml-1 mr-1">
-        <label class="cell-sm-6"><i class="fas fa-arrow-up fg-brown fa-fw"></i> Jog A+</label>
+        <label class="cell-sm-6"><i class="fas fa-redo fg-orange fa-fw"></i> Jog A+</label>
         <div class="cell-sm-6">
           <input type="text" class="keyboardshortcutinput" readonly id="aPnewKey" value="` + keyboardShortcuts.aP + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#aPnewKey').addClass('primary').addClass('newKeyAssignment')">
         </div>
@@ -540,7 +560,19 @@ function keyboardShortcutsEditor() {
         </div>
       </div>
 
-    
+      <div class="row mb-1 ml-1 mr-1">
+        <label class="cell-sm-6"><i class="far fa-hand-point-up fg-openbuilds fa-fw"></i> Increase Tool Override<br></label>
+        <div class="cell-sm-6">
+          <input type="text" class="keyboardshortcutinput" readonly id="toIncKey" value="` + keyboardShortcuts.toInc + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#toIncKey').addClass('primary').addClass('newKeyAssignment')">
+        </div>
+      </div>
+
+      <div class="row mb-1 ml-1 mr-1">
+        <label class="cell-sm-6"><i class="far fa-hand-point-down fg-openbuilds fa-fw"></i>  Decrease Tool Override<br></label>
+        <div class="cell-sm-6">
+          <input type="text" class="keyboardshortcutinput" readonly id="toDecKey" value="` + keyboardShortcuts.toDec + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#toDecKey').addClass('primary').addClass('newKeyAssignment')">
+        </div>
+      </div>
 
 
     </form>
@@ -549,6 +581,7 @@ function keyboardShortcutsEditor() {
 
   Metro.dialog.create({
     title: "<i class='far fa-keyboard fa-fw'></i> Customize Keyboard Shortcuts",
+    toTop: true,
     content: template,
     width: 600,
     clsDialog: 'dark',
@@ -583,8 +616,9 @@ function keyboardShortcutsEditor() {
 
           keyboardShortcuts.froInc = $("#froIncKey").val()
           keyboardShortcuts.froDec = $("#froDecKey").val()
+          keyboardShortcuts.toInc = $("#toIncKey").val()
+          keyboardShortcuts.toDec = $("#toDecKey").val()
           bindKeys()
-
         }
       },
       {

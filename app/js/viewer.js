@@ -132,14 +132,17 @@ function drawWorkspace(xmin, xmax, ymin, ymax) {
   }
 
   if (!disable3Drealtimepos) {
-    cone = new THREE.Mesh(new THREE.CylinderGeometry(0, 5, 40, 15, 1, false), new THREE.MeshPhongMaterial({
+    var coneGeo = new THREE.CylinderGeometry(0, 5, 40, 15, 1, false)
+    coneGeo.applyMatrix(new THREE.Matrix4().makeTranslation(0, -20, 0));
+
+    cone = new THREE.Mesh(coneGeo, new THREE.MeshPhongMaterial({
       color: 0x0000ff,
       specular: 0x0000ff,
       shininess: 00
     }));
     cone.overdraw = true;
     cone.rotation.x = -90 * Math.PI / 180;
-    cone.position.x = 20;
+    cone.position.x = 0;
     cone.position.y = 0;
     cone.position.z = 0;
     cone.material.opacity = 0.6;
@@ -365,6 +368,7 @@ function init3D() {
   } else {
     console.log('No WebGL Support found on this computer! Disabled 3D Viewer - Sorry!');
     printLog("<span class='fg-darkRed'>[ ERROR ]</span>  <span class='fg-darkRed'>No WebGL Support found on this computer! Disabled 3D Viewer - Sorry!</span>")
+    printLog("<span class='fg-darkRed'>[ ERROR ]</span>  <span class='fg-darkRed'>" + getWebGLErrorMessage() + "</span>")
     $('#gcodeviewertab').hide()
     $('#consoletab').click()
     return false;
@@ -375,16 +379,8 @@ function init3D() {
 function animate() {
   if (!pauseAnimation) {
     camera.updateMatrixWorld();
-    if (cone) {
-      // 160widthx200height offset?
-      if (cone.position) {
-        
-        var farside = $("#renderArea").offset().left
-        var topside = $("#renderArea").offset().top 
-        }
-        $("#conetext").css('left', farside + 45 +"px").css('top', topside  -25 +"px");
-  
-      }
+    simAnimate()
+    toolAnimate();
 
     if (clearSceneFlag) {
       while (scene.children.length > 1) {

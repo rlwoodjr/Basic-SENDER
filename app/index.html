@@ -18,10 +18,13 @@
 
   <body>
 
-    <div class="pos-fixed pos-center" id="splash">
-      <div id="splashAd" style="display:none"></div>
-      <br>
-      <center>Starting&nbsp;BobsCNC&nbsp;Basic SENDER...</center>
+    <div class="pos-fixed pos-center" id="splash" >
+      <center>
+      Starting&nbsp;BobsCNC&nbsp;Basic SENDER...
+          <img src="splash.png" onload="$('#BasicSENDERlogosplash').fadeIn(800); setTimeout(function() { $('#splash').fadeOut(400); }, 4000)" style="cursor:pointer" />
+          
+        </div>
+      </center>
     </div>
 
 
@@ -1891,7 +1894,7 @@
   <script type="text/javascript" src="js/updates.js"></script>
   <script type="text/javascript" src="js/ui.js"></script>
   <script type="text/javascript" src="js/websocket.js"></script>
-  <script type="text/javascript" src="js/grblsettings.js"></script>
+
   <script type="text/javascript" src="js/metroactions.js"></script>
   <script type="text/javascript" src="js/jog.js"></script>
   <script type="text/javascript" src="js/servo.js"></script>
