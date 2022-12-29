@@ -237,7 +237,7 @@ const Theme = new Proxy(ThemeData, {
 ThemeData.init();
 
 $(document).ready(function() {
-  // Commented out Dropdown menu item creating - will use when we have more theme options
+  // /Commented out Dropdown menu item creating - will use when we have more theme options
   //
   // -- Dropdown Ribbon Button
   // <div class="group">
@@ -257,7 +257,7 @@ $(document).ready(function() {
   //   </div>
   //   <span class="title">Theme</span>
   // </div>
-  //
+  ///
   for (let themeId in ThemeData.THEMES) {
     let theme = ThemeData.THEMES[themeId];
     // let menuItem = $('<li><a href="#"><i class="fas fa-fw fa-' + theme.ICON + '"></i> ' + theme.DESCRIPTION + '</a></li>');
