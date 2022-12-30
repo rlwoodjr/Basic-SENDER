@@ -29,6 +29,15 @@ function jogOverride(newVal) {
     
 
   }
+  if (grblParams.hasOwnProperty('$113')) {
+    jogRateA = (grblParams['$113'] * (newVal / 100)).toFixed(0);
+  }
+  localStorage.setItem('jogOverride', newVal);
+}
+
+function setADist(newADist) {
+  $("#distAAxislabel").html("A: " + newADist + " deg")
+  jogdistA = newADist;
 }
 
 function mmMode() {
@@ -989,9 +998,6 @@ $('.aM').on('touchend mouseup', function(ev) {
   });
 
 });
-
-
-///this fuction is for the keyboard
 
 function changeStepSize(dir) {
   if (jogdist == 0.1 || jogdist == 0.0254) {

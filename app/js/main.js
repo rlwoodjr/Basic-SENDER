@@ -582,14 +582,17 @@ function ConfirmDelete() {
 
 
 function softlimits(){
+
   if (grblParams['$20'] == 1){
       sendGcode('$20=0')
       document.getElementById('softlimitsbtn').innerHTML = 'Soft' + '<br>' + 'Limits Off'
+      grblParams['$20'] = 0
       $('#softlimiticon').removeClass('fg-green')
       $('#softlimiticon').addClass('fg-red')
   }else{
       sendGcode('$20=1')
       document.getElementById('softlimitsbtn').innerHTML = 'Soft' + '<br>' + 'Limits On'
+      grblParams['$20'] = 1
       $('#softlimiticon').removeClass('fg-red')
       $('#softlimiticon').addClass('fg-green')
  

@@ -355,13 +355,13 @@
               <div class="group estop" style="width: 120px;">
                 <table style="margin-left:auto;margin-right:auto;">
                   <tr>
-                    <td >X -<span class="tally alert pinstatus" id="xpin">NOCOMM</span></td>
+                    <td >X -<span class="tally alert pinstatus xpin">NOCOMM</span></td>
                   </tr>
                   <tr>
-                    <td>Y -<span class="tally alert pinstatus" id="ypin">NOCOMM</span></td>
+                    <td>Y -<span class="tally alert pinstatus ypin">NOCOMM</span></td>
                   </tr>
                   <tr>
-                    <td>Z -<span class="tally alert pinstatus" id="zpin">NOCOMM</span></td>
+                    <td>Z -<span class="tally alert pinstatus zpin">NOCOMM</span></td>
                   </tr>
                 </table>
 
@@ -1033,31 +1033,34 @@
                       </thead>
                       <tbody>
                         <tr>
-                          <td class="pt-1 mt-0 pb-0 pt-0">X-Home</td>
-                          <td class="pt-1 mt-0 pb-0 pt-0"><span class="tally alert pinstatus" id="xpin">NOCOMM</span></td>
+                          <td class="pt-1 mt-1 mb-1 pb-0 pt-0" colspan="2">Manually activate inputs you want to test</td>
                         </tr>
                         <tr>
-                          <td class="pt-1 mt-0 pb-0 pt-0">Y-Home</td>
-                          <td class="pt-1 mt-0 pb-0 pt-0"><span class="tally alert pinstatus" id="ypin">NOCOMM</span></td>
+                          <td class="pt-1 mt-0 pb-0 pt-0">X-Limit</td>
+                          <td class="pt-1 mt-0 pb-0 pt-0"><span class="tally alert pinstatus xpin">NOCOMM</span></td>
                         </tr>
                         <tr>
-                          <td class="pt-1 mt-0 pb-0 pt-0">Z-Home</td>
-                          <td class="pt-1 mt-0 pb-0 pt-0"><span class="tally alert pinstatus" id="zpin">NOCOMM</span></td>
+                          <td class="pt-1 mt-0 pb-0 pt-0">Y-Limit</td>
+                          <td class="pt-1 mt-0 pb-0 pt-0"><span class="tally alert pinstatus ypin">NOCOMM</span></td>
+                        </tr>
+                        <tr>
+                          <td class="pt-1 mt-0 pb-0 pt-0">Z-Limit</td>
+                          <td class="pt-1 mt-0 pb-0 pt-0"><span class="tally alert pinstatus zpin">NOCOMM</span></td>
                         </tr>
                         <tr>
                           <td class="pt-1 mt-0 pb-0 pt-0">Probe</td>
-                          <td class="pt-1 mt-0 pb-0 pt-0"><span class="tally alert pinstatus" id="prbpin">NOCOMM</span></td>
+                          <td class="pt-1 mt-0 pb-0 pt-0"><span class="tally alert pinstatus prbpin">NOCOMM</span></td>
                         </tr>
-                        <tr>  
+                        <tr>
                           <td class="pt-1 mt-0 pb-0 pt-0">Door Sensor</td>
-                          <td class="pt-1 mt-0 pb-0 pt-0"><span class="tally alert pinstatus" id="doorpin">NOCOMM</span></td>
+                          <td class="pt-1 mt-0 pb-0 pt-0"><span class="tally alert pinstatus doorpin">NOCOMM</span></td>
                         </tr>
                         <tr>
                           <td class="pt-1 mt-0 pb-0 pt-0">Buttons</td>
                           <td class="pt-1 mt-0 pb-0 pt-0">
-                            <span class="tally alert pinstatus" id="startpin">NOCOMM</span>
-                            <span class="tally alert pinstatus" id="holdpin">NOCOMM</span>
-                            <span class="tally alert pinstatus" id="resetpin">NOCOMM</span>
+                            <span class="tally alert pinstatus startpin">NOCOMM</span>
+                            <span class="tally alert pinstatus holdpin">NOCOMM</span>
+                            <span class="tally alert pinstatus resetpin">NOCOMM</span>
                           </td>
                         </tr>
                       </tbody>
@@ -1897,7 +1900,6 @@
   <script type="text/javascript" src="js/updates.js"></script>
   <script type="text/javascript" src="js/ui.js"></script>
 
-  <script type="text/javascript" src="js/grbl-settings-templates.js"></script>
   <script type="text/javascript" src="js/grbl-settings.js"></script>
 
   <script type="text/javascript" src="js/websocket.js"></script>

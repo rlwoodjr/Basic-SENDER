@@ -1,76 +1,48 @@
 $(document).ready(function() {
-  var backupFileOpen = document.getElementById('grblBackupFile');
-  if (backupFileOpen) {
-    backupFileOpen.addEventListener('change', readGrblBackupFile, false);
-  }
+ 
 });
 
-function readGrblBackupFile(evt) {
-  var files = evt.target.files || evt.dataTransfer.files;
-  loadGrblBackupFile(files[0]);
-  document.getElementById('grblBackupFile').value = '';
 
-}
 
-function loadGrblBackupFile(f) {
-  if (f) {
-    // Filereader
-    var r = new FileReader();
-    // if (f.name.match(/.gcode$/i)) {
-    r.readAsText(f);
-    r.onload = function(event) {
-      //var grblsettingsfile = this.result
-      //console.log(this.result)
-      var data = this.result.split("\n");
-      for (i = 0; i < data.length; i++) {
-        if (data[i].indexOf("$I=") == 0) {
-          setMachineButton(data[i].split('=')[1])
-        } else {
-          var key = data[i].split('=')[0];
-          var param = data[i].split('=')[1]
-          $("#val-" + key.substring(1) + "-input").val(parseFloat(param))
-          fixGrblHALSettings(key.substring(1)); // Fix GrblHAL Defaults
-        }
-      };
-
-      checkifchanged();
-      enableLimits(); // Enable or Disable
-      displayDirInvert();
-    }
-  }
-}
-
-function backupGrblSettings() {
-  var grblBackup = ""
-  for (key in grblParams) {
-    var key2 = key.split('=')[0].substr(1);
-
-    if (grblSettingsTemplate2[key2] !== undefined) {
-      var descr = grblSettingsTemplate2[key2].title
-    } else {
-      var descr = "unknown"
-    }
-
-    grblBackup += key + "=" + grblParams[key] + "  ;  " + descr + "\n"
-  }
-  if (laststatus.machine.name.length > 0) {
-    grblBackup += "$I=" + laststatus.machine.name
-  }
-  var blob = new Blob([grblBackup], {
-    type: "plain/text"
-  });
-  var date = new Date();
-  if (laststatus.machine.name.length > 0) {
-    invokeSaveAsDialog(blob, 'grbl-settings-backup-' + laststatus.machine.name + "-" + date.yyyymmdd() + '.txt');
-  } else {
-    invokeSaveAsDialog(blob, 'grbl-settings-backup-' + date.yyyymmdd() + '.txt');
-  }
-
-}
+var grblSettingCodes = {
+  0: "Step pulse time, microseconds",
+  1: "Step idle delay, milliseconds",
+  2: "Step pulse invert, mask",
+  3: "Step direction invert, mask",
+  4: "Invert step enable pin, boolean",
+  5: "Invert limit pins, boolean",
+  6: "Invert probe pin, boolean",
+  10: "Status report options, mask",
+  11: "Junction deviation, millimeters",
+  12: "Arc tolerance, millimeters",
+  13: "Report in inches, boolean",
+  20: "Soft limits enable, boolean",
+  21: "Hard limits enable, boolean",
+  22: "Homing cycle enable, boolean",
+  23: "Homing direction invert, mask",
+  24: "Homing locate feed rate, mm/min",
+  25: "Homing search seek rate, mm/min",
+  26: "Homing switch debounce delay, milliseconds",
+  27: "Homing switch pull-off distance, millimeters",
+  30: "Maximum spindle speed, RPM",
+  31: "Minimum spindle speed, RPM",
+  32: "Laser-mode enable, boolean",
+  100: "X-axis steps per millimeter",
+  101: "Y-axis steps per millimeter",
+  102: "Z-axis steps per millimeter",
+  110: "X-axis maximum rate, mm/min",
+  111: "Y-axis maximum rate, mm/min",
+  112: "Z-axis maximum rate, mm/min",
+  120: "X-axis acceleration, mm/sec^2",
+  121: "Y-axis acceleration, mm/sec^2",
+  122: "Z-axis acceleration, mm/sec^2",
+  130: "X-axis maximum travel, millimeters",
+  131: "Y-axis maximum travel, millimeters",
+  132: "Z-axis maximum travel, millimeters"
+};
 
 function grblSettings(data) {
-  // console.log(data)
-  var template = ``
+
   grblconfig = data.split('\n')
   for (i = 0; i < grblconfig.length; i++) {
     var key = grblconfig[i].split('=')[0];
@@ -102,21 +74,9 @@ function grblSettings(data) {
     $('#softlimiticon').removeClass('fg-red')
     $('#softlimiticon').addClass('fg-green')
   }
-
-  if (grblParams['$32'] == 1) {
-    $('#enLaser').removeClass('alert').addClass('success').html('ON')
-  } else {
-    $('#enLaser').removeClass('success').addClass('alert').html('OFF')
-  }
-
-  updateToolOnSValues();
-
-  if (localStorage.getItem('jogOverride')) {
-    jogOverride(localStorage.getItem('jogOverride'))
-  } else {
-    jogOverride(100);
-  }
+ 
 }
+
 
 
 
@@ -190,6 +150,22 @@ function clearEEPROM() {
       }
     ]
   });
+}
+
+
+function refreshGrblSettings() {
+  $('#saveBtn').attr('disabled', true).addClass('disabled');
+  $('#saveBtnIcon').removeClass('fg-grayBlue').addClass('fg-gray');
+  grblParams = {};
+  $('#grblconfig').empty();
+  $('#grblconfig').append("<center>Please Wait... </center><br><center>Requesting updated parameters from the controller firmware...</center>");
+  setTimeout(function() {
+    sendGcode('$$');
+    sendGcode('$I');
+    setTimeout(function() {
+    }, 500);
+  }, 200);
+
 }
 
 function updateToolOnSValues() {

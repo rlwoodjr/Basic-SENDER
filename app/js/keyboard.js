@@ -28,6 +28,9 @@ $(document).ready(function() {
     if (!keyboardShortcuts.toInc) {
       keyboardShortcuts.toInc = "w"
     }
+    if (!keyboardShortcuts.toDec) {
+      keyboardShortcuts.toDec = "s"
+    }
     if (!keyboardShortcuts.jogSpeedM) {
       keyboardShortcuts.jogSpeedM = "0"
     }

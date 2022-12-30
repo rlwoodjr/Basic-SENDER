@@ -1541,7 +1541,7 @@ io.on("connection", function(socket) {
           }
         }
         status.comms.runStatus = 'Running'
-        // debug_log('sending ' + JSON.stringify(gcodeQueue))
+         debug_log('sending-------------- ' + JSON.stringify(gcodeQueue))
         send1Q();
       }
     } else {

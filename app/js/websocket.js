@@ -227,15 +227,11 @@ function initSocket() {
     }
 
     // Parse Grbl Settings Feedback
-    if (data.response.indexOf('$$') === 0) {
+    if (data.response.indexOf('$') === 0) {
       if (typeof grblSettings !== 'undefined') {
         grblSettings(data.response)
         var key = data.response.split('=')[0].substr(1);
-        if (grblSettingsTemplate2[key] !== undefined) {
-        var descr = grblSettingsTemplate2[key].title
-        } else {
-          var descr = "unknown"
-        }
+        var descr = grblSettingCodes[key];
         toPrint = data.response + "  ;" + descr
         var icon = ''
         var source = data.command
@@ -728,15 +724,15 @@ function initSocket() {
         switch (status.machine.inputs[i]) {
           case 'X':
             // console.log('PIN: X-LIMIT');
-            $('.xpin').removeClass('success').addClass('alert').html('TRIGGERED')
+            $('.xpin').removeClass('success').addClass('alert').html('ON')
             break;
           case 'Y':
             // console.log('PIN: Y-LIMIT');
-            $('.ypin').removeClass('success').addClass('alert').html('TRIGGERED')
+            $('.ypin').removeClass('success').addClass('alert').html('ON')
             break;
           case 'Z':
             // console.log('PIN: Z-LIMIT');
-            $('.zpin').removeClass('success').addClass('alert').html('TRIGGERED')
+            $('.zpin').removeClass('success').addClass('alert').html('ON')
             break;
           case 'P':
             // console.log('PIN: PROBE');
