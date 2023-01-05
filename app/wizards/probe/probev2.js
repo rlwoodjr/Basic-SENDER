@@ -21,7 +21,7 @@ var probemode = {
   stock: {
     x: 0,
     y: 0,
-    position: "fl" // fl, fr, rl, rr, c
+    position: "rl" // fl, fr, rl, rr, c
   },
  
 }
@@ -258,11 +258,11 @@ function probezplatetab() {
 
 function resetOffsetFL() {
   $(".probe-label").removeClass("areaactive")
-  $("#probe-fl").addClass("areaactive")
-  probemode.stock.position = "fl" // fl, fr, rl, rr, c
+  $("#probe-rl").addClass("areaactive")
+  probemode.stock.position = "rl" // fl, fr, rl, rr, c
 }
 
-$("#probe-fl, #probe-fl-text").on("click", function() {
+$("#probe-rl, #probe-rl-text").on("click", function() {
   resetOffsetFL();
 });
 
@@ -272,10 +272,10 @@ $("#probe-fr, #probe-fr-text").on("click", function() {
   probemode.stock.position = "fr" // fl, fr, rl, rr, c
 });
 
-$("#probe-rl, #probe-rl-text").on("click", function() {
+$("#probe-fl, #probe-fl-text").on("click", function() {
   $(".probe-label").removeClass("areaactive")
-  $("#probe-rl").addClass("areaactive")
-  probemode.stock.position = "rl" // fl, fr, rl, rr, c
+  $("#probe-fl").addClass("areaactive")
+  probemode.stock.position = "fl" // fl, fr, rl, rr, c
 });
 
 $("#probe-rr, #probe-rr-text").on("click", function() {
@@ -283,6 +283,7 @@ $("#probe-rr, #probe-rr-text").on("click", function() {
   $("#probe-rr").addClass("areaactive")
   probemode.stock.position = "rr" // fl, fr, rl, rr, c
 });
+
 
 $("#probe-c, #probe-c-text").on("click", function() {
   $(".probe-label").removeClass("areaactive")
@@ -341,8 +342,8 @@ function resetJogModeAfterProbe() {
 function runProbeNew() {
   resetJogModeAfterProbe()
   $("#consoletab").click()
-  probemode.stock.x = $("#stockwidth").val();
-  probemode.stock.y = $("#stocklength").val();
+  probemode.stock.y = $("#stockwidth").val();
+  probemode.stock.x = $("#stocklength").val();
 
   template = `Code todo: run: \n`
   template += `Mode: ` + probemode.mode + `\n`
@@ -360,29 +361,29 @@ function runProbeNew() {
     x: 0,
     y: 0
   }
-  if (probemode.stock.position == "fl") { // fl, fr, rl, rr, c
+  if (probemode.stock.position == "rl") { // fl, fr, rl, rr, c
     template += `Offset: NONE\n`
   }
-  if (probemode.stock.position == "fr") { // fl, fr, rl, rr, c
+  if (probemode.stock.position == "fl") { // fl, fr, rl, rr, c
     template += `Stock x:` + probemode.stock.x + `\n`;
     template += `Stock y: ` + probemode.stock.y + `\n`;
-    template += `Offset: Front Right:\n`;
+    template += `Offset: Front Left:\n`;
     template += `Offset x:` + probemode.stock.x + `\n`;
     template += `Offset y: ` + 0 + `\n`;
     stockoffset.x = probemode.stock.x
-  }
-  if (probemode.stock.position == "rl") { // fl, fr, rl, rr, c
-    template += `Stock x:` + probemode.stock.x + `\n`;
-    template += `Stock y: ` + probemode.stock.y + `\n`;
-    template += `Offset: Rear Left:\n`;
-    template += `Offset x:` + 0 + `\n`;
-    template += `Offset y: ` + probemode.stock.y + `\n`;
-    stockoffset.y = probemode.stock.y
   }
   if (probemode.stock.position == "rr") { // fl, fr, rl, rr, c
     template += `Stock x:` + probemode.stock.x + `\n`;
     template += `Stock y: ` + probemode.stock.y + `\n`;
     template += `Offset: Rear Right:\n`;
+    template += `Offset x:` + 0 + `\n`;
+    template += `Offset y: ` + probemode.stock.y + `\n`;
+    stockoffset.y = probemode.stock.y
+  }
+  if (probemode.stock.position == "fr") { // fl, fr, rl, rr, c
+    template += `Stock x:` + probemode.stock.x + `\n`;
+    template += `Stock y: ` + probemode.stock.y + `\n`;
+    template += `Offset: Front Right:\n`;
     template += `Offset x:` + probemode.stock.x + `\n`;
     template += `Offset y: ` + probemode.stock.y + `\n`;
     stockoffset.x = probemode.stock.x
@@ -394,7 +395,7 @@ function runProbeNew() {
     template += `Offset: Center:\n`;
     template += `Offset x:` + probemode.stock.x / 2 + `\n`;
     template += `Offset y: ` + probemode.stock.y / 2 + `\n`;
-    stockoffset.x = probemode.stock.y / 2
+    stockoffset.x = probemode.stock.x / 2
     stockoffset.y = probemode.stock.y / 2
   }
 
@@ -431,7 +432,6 @@ function runProbeNew() {
     var xoffset = (probemode.probe.xoffset + probemode.endmilldia / 2) * -1 // *-1 to make negative as we are off to the left too far from x0
     var yoffset = (probemode.probe.yoffset + probemode.endmilldia / 2) * -1 // *-1 to make negative as we are off to the front too far from y0
     var zoffset = probemode.probe.zoffset // not *-1 as its offset in z pos
-
     var ymacro = `
     ; Header
     G21 ; mm mode
