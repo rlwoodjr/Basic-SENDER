@@ -13,6 +13,7 @@ function populateSurfaceToolForm() {
       surfaceDepth: 3,
       surfaceRPM: 1000,
       surfaceZSafe: 10,
+      surfaceUnits:'mm',
     };
   }
   $("#surfaceDiameter").val(data.surfaceDiameter);
@@ -23,8 +24,33 @@ function populateSurfaceToolForm() {
   $("#surfaceDepth").val(data.surfaceDepth);
   $("#surfaceRPM").val(data.surfaceRPM);
   $("#surfaceZSafe").val(data.surfaceZSafe);
+  $("#surfaceUnits").val(data.surfaceUnits);
+
   var $radios = $("input:radio[name=surfaceType]");
   $radios.filter("[value=" + data.surfaceType + "]").prop("checked", true);
+
+  let unitValue = document.getElementById("surfaceUnits");
+  let unitAppend = document.getElementsByClassName("append");
+
+  if (unitValue.value=='in') {
+
+    for (let i = 0; i < unitAppend.length; i++) {
+      if(unitAppend[i].innerHTML=='mm'){
+        unitAppend[i].textContent = "inch";
+      }else if(unitAppend[i].innerHTML=='mm/min'){
+        unitAppend[i].textContent = "inch/min";
+      }
+    }
+  } else {
+    for (let i = 0; i < unitAppend.length; i++) {
+      if(unitAppend[i].innerHTML=='inch'){
+        unitAppend[i].textContent = "mm";
+      }else if(unitAppend[i].innerHTML=='inch/min'){
+        unitAppend[i].textContent = "mm/min";
+      }
+    }
+  }
+
   Metro.dialog.open("#surfacingDialog");
 }
 
@@ -39,9 +65,21 @@ function createSurfaceGcode() {
     surfaceType: $("input[name='surfaceType']:checked").val(),
     surfaceRPM: $('#surfaceRPM').val(),
     surfaceZSafe: $('#surfaceZSafe').val(),
+    surfaceUnits: $('#surfaceUnits').val(),
   };
   console.log(data);
   localStorage.setItem("lastSurfacingTool", JSON.stringify(data));
+
+  let unitTag = 'mm'
+  let feedTag = 'mm/min'
+  let gcodeTag ='G21'
+   if ($('#surfaceUnits').val()=='in') {
+     unitTag = 'inch'
+     feedTag = 'inches/min'
+     gcodeTag ='G20'
+
+  }
+
 
   var startpointX = 0 + data.surfaceDiameter / 2;
   var endpointX = data.surfaceX - data.surfaceDiameter / 2;
@@ -54,13 +92,13 @@ function createSurfaceGcode() {
   var gcode =
     `; Surfacing / Flattening Operation
 ; Endmill Diameter: ` +
-    data.surfaceDiameter +
-    `mm
+    data.surfaceDiameter +` `+
+    unitTag +`
 ; Stepover: ` +
     data.surfaceStepover +
     `%, Feedrate: ` +
-    data.surfaceFeedrate +
-    `mm/min
+    data.surfaceFeedrate + ` ` +
+    feedTag +`
 ; X: ` +
     data.surfaceX +
     `, Y: ` +
@@ -69,7 +107,7 @@ function createSurfaceGcode() {
     data.surfaceDepth +
     `
 G54; Work Coordinates
-G21; mm-mode
+`+ gcodeTag +`; `+ unitTag +`-mode
 G90; Absolute Positioning
 M3 S` + data.surfaceRPM + `; Spindle On
 G4 P1.8 ; Wait for spindle to come up to speed
@@ -149,8 +187,6 @@ G1 X` +
   gcode += `G1 X` + endpointX + ` Y` + startpointY + `Z-` + data.surfaceDepth + `\n`; // Cut side
   gcode += `G0 Z` + data.surfaceZSafe + `\n`;
   gcode += `G0 X0 Y0\n`;
-
-
   gcode += `M5 S0\n`;
 
   editor.session.setValue(gcode);
@@ -179,6 +215,7 @@ function populateRoundingToolForm() {
       roundingFinishA: 150,
       roundingDepth: 3,
       roundingZSafe: 10,
+      roundUnits:'mm',
     };
   }
   $("#roundDiameter").val(data.roundingDiameter);
@@ -189,8 +226,33 @@ function populateRoundingToolForm() {
   $("#roundFinishA").val(data.roundingFinishA);
   $("#roundDepth").val(data.roundingDepth);
   $("#roundZSafe").val(data.roundingZSafe);
+  $("#roundUnits").val(data.roundUnits);
+
   var $radios = $("input:radio[name=surfaceType]");
   $radios.filter("[value=" + data.surfaceType + "]").prop("checked", true);
+
+  let unitValue = document.getElementById("roundUnits");
+  let unitAppend = document.getElementsByClassName("append");
+
+  if (unitValue.value=='in') {
+
+    for (let i = 0; i < unitAppend.length; i++) {
+      if(unitAppend[i].innerHTML=='mm'){
+        unitAppend[i].textContent = "inch";
+      }else if(unitAppend[i].innerHTML=='mm/min'){
+        unitAppend[i].textContent = "inch/min";
+      }
+    }
+  } else {
+    for (let i = 0; i < unitAppend.length; i++) {
+      if(unitAppend[i].innerHTML=='inch'){
+        unitAppend[i].textContent = "mm";
+      }else if(unitAppend[i].innerHTML=='inch/min'){
+        unitAppend[i].textContent = "mm/min";
+      }
+    }
+  }
+
   Metro.dialog.open("#roundingDialog");
 }
 
@@ -205,6 +267,7 @@ function createRoundingGcode() {
     roundingFinishA: $("#roundFinishA").val(),
     roundingDepth: $("#roundDepth").val(),
     roundingZSafe: $("#roundZSafe").val(),
+    roundUnits: $('#roundUnits').val(),
 
   };
   //console.log(data);
@@ -221,18 +284,30 @@ function createRoundingGcode() {
   var FR= parseFloat(data.roundingFeedrate)
   var ZSafe=parseFloat(data.roundingZSafe)
 
+
+  let unitTag = 'mm'
+  let feedTag = 'mm/min'
+  let gcodeTag ='G21'
+   if ($('#roundUnits').val()=='in') {
+     unitTag = 'inches'
+     feedTag = 'inches/min'
+     gcodeTag ='G20'
+
+  }
+
+
   //console.log(data);
   var gcode =
-`; Surfacing / Flattening Operation
-; Endmill Diameter: ` +  data.roundingDiameter +`mm
+`; Surfacing / Rounding Operation
+; Endmill Diameter: ` +  data.roundingDiameter + ` `+ unitTag +`
 ; Stepover: ` + data.roundingStepover + `%
-; Feedrate: ` + data.roundingFeedrate + `mm/min
-; X Length: ` +  data.roundingX + `
-; Start Diameter: ` + data.roundingStartA + `mm
-; Project Diameter: ` + data.roundingFinishA +`mm
+; Feedrate: ` + data.roundingFeedrate +` `+ feedTag + `
+; X Length: ` +  data.roundingX +` `+ unitTag +`
+; Start Diameter: ` + data.roundingStartA + ` ` + unitTag + `
+; Project Diameter: ` + data.roundingFinishA + ` ` +unitTag +`
 
 G54; Work Coordinates
-G21; mm-mode
+`+ gcodeTag +`; `+ unitTag +`-mode
 G90; Absolute Positioning
 M3 S1000 ;Spindle On
 G4 P1.8 ; Wait for spindle to come up to speed\n`
@@ -263,18 +338,109 @@ G4 P1.8 ; Wait for spindle to come up to speed\n`
   gcode += `G0 X0 A0\n`;
   gcode += `M5 S0\n`;
 
-
-
-
-
   console.log(gcode);
-
-
-
-
 
   editor.session.setValue(gcode);
   parseGcodeInWebWorker(gcode)
   printLog("<span class='fg-red'>[ Rounding Wizard ] </span><span class='fg-green'>GCODE Loaded</span>")
 
+}
+
+
+function changeSurfaceUnits(){
+
+
+  let unitValue = document.getElementById("surfaceUnits");
+  let unitAppend = document.getElementsByClassName("append");
+
+
+  if (unitValue.value=='in') {
+
+    for (let i = 0; i < unitAppend.length; i++) {
+      if(unitAppend[i].innerHTML=='mm'){
+        unitAppend[i].textContent = "inch";
+      }else if(unitAppend[i].innerHTML=='mm/min'){
+        unitAppend[i].textContent = "inch/min";
+      }
+    }
+    $("#surfaceDiameter").val(($("#surfaceDiameter").val()/25.4).toFixed(4));
+    $("#surfaceFeedrate").val(($("#surfaceFeedrate").val()/25.4).toFixed(4));
+    $("#surfaceX").val(($("#surfaceX").val()/25.4).toFixed(4));
+    $("#surfaceY").val(($("#surfaceY").val()/25.4).toFixed(4));
+    $("#surfaceDepth").val(($("#surfaceDepth").val()/25.4).toFixed(4));
+    $("#surfaceZSafe").val(($("#surfaceZSafe").val()/25.4).toFixed(4));
+
+
+  } else {
+    for (let i = 0; i < unitAppend.length; i++) {
+      if(unitAppend[i].innerHTML=='inch'){
+        unitAppend[i].textContent = "mm";
+      }else if(unitAppend[i].innerHTML=='inch/min'){
+        unitAppend[i].textContent = "mm/min";
+      }
+      
+    }
+    $("#surfaceDiameter").val(($("#surfaceDiameter").val()*25.4).toFixed(3));
+    $("#surfaceFeedrate").val(($("#surfaceFeedrate").val()*25.4).toFixed(3));
+    $("#surfaceX").val(($("#surfaceX").val()*25.4).toFixed(3));
+    $("#surfaceY").val(($("#surfaceY").val()*25.4).toFixed(3));
+    $("#surfaceDepth").val(($("#surfaceDepth").val()*25.4).toFixed(3));
+    $("#surfaceZSafe").val(($("#surfaceZSafe").val()*25.4).toFixed(3));
+  }
+
+  
+}
+
+
+
+function changeRoundUnits(){
+
+
+  let unitValue = document.getElementById("roundUnits");
+  let unitAppend = document.getElementsByClassName("append");
+
+
+  if (unitValue.value=='in') {
+
+    for (let i = 0; i < unitAppend.length; i++) {
+      if(unitAppend[i].innerHTML=='mm'){
+        unitAppend[i].textContent = "inch";
+      }else if(unitAppend[i].innerHTML=='mm/min'){
+        unitAppend[i].textContent = "inch/min";
+      }
+    }
+    $("#roundDiameter").val(($("#roundDiameter").val()/25.4).toFixed(4));
+    $("#roundFeedrate").val(($("#roundFeedrate").val()/25.4).toFixed(4));
+    $("#roundX").val(($("#roundX").val()/25.4).toFixed(4));
+    $("#roundStartA").val(($("#roundStartA").val()/25.4).toFixed(4));
+    $("#roundFinishA").val(($("#roundFinishA").val()/25.4).toFixed(4));
+    $("#roundDepth").val(($("#roundDepth").val()/25.4).toFixed(4));
+    $("#roundZSafe").val(($("#roundZSafe").val()/25.4).toFixed(4));
+
+
+
+
+
+
+
+
+  } else {
+    for (let i = 0; i < unitAppend.length; i++) {
+      if(unitAppend[i].innerHTML=='inch'){
+        unitAppend[i].textContent = "mm";
+      }else if(unitAppend[i].innerHTML=='inch/min'){
+        unitAppend[i].textContent = "mm/min";
+      }
+      
+    }
+    $("#roundDiameter").val(($("#roundDiameter").val()*25.4).toFixed(3));
+    $("#roundFeedrate").val(($("#roundFeedrate").val()*25.4).toFixed(3));
+    $("#roundX").val(($("#roundX").val()*25.4).toFixed(3));
+    $("#roundStartA").val(($("#roundStartA").val()*25.4).toFixed(4));
+    $("#roundFinishA").val(($("#roundFinishA").val()*25.4).toFixed(4));
+    $("#roundDepth").val(($("#roundDepth").val()*25.4).toFixed(3));
+    $("#roundZSafe").val(($("#roundZSafe").val()*25.4).toFixed(3));
+  }
+
+  
 }

@@ -49,24 +49,24 @@ let ThemeData = {
       DESCRIPTION: 'Dark Mode',
       ICON: 'moon',
       SPRITE_OPACITY: 0.8,
-      SKY_TOP_COLOR: 0x333333,
-      SKY_BOTTOM_COLOR: 0x222222,
+      SKY_TOP_COLOR: 0x888888,
+      SKY_BOTTOM_COLOR: 0x555555,
       HEMI_LIGHT_COLOR: {
         'H': 0.6,
         'S': 0.0,
         'L': 0.1
       },
-      GRID_STEP_10_COLOR: 0x555555,
+      GRID_STEP_10_COLOR: 0x000000,
       GRID_STEP_10_OPACITY: 0.15,
-      GRID_STEP_100_COLOR: 0x666666,
+      GRID_STEP_100_COLOR: 0x000000,
       GRID_STEP_100_OPACITY: 0.15,
-      RULER_COLOR: 0x555555,
+      RULER_COLOR: 0x000000,
       RULER_OPACITY: 0.30,
       X_RULER_NUMBER_COLOR: "#cc0000",
       X_RULER_LABEL_COLOR: "#ff0000",
       X_AXIS_LINE_COLOR: 0xcc0000,
-      Y_RULER_NUMBER_COLOR: "#006600",
-      Y_RULER_LABEL_COLOR: "#006600",
+      Y_RULER_NUMBER_COLOR: "#008800",
+      Y_RULER_LABEL_COLOR: "#008800",
       Y_AXIS_LINE_COLOR: 0x00cc00,
       LINE_COLOURS: [{
           'R': 0,
@@ -160,11 +160,17 @@ let ThemeData = {
       let newIcon = $('<i class="fas fa-fw fa-' + theme.ICON + '"></i>');
       $("#currentThemeIcon").html(newIcon);
       $("#currentThemeName").html("Light<br>Mode")
+      document.getElementById("logoimgA").src="splash2.png";
+      document.getElementById("logoimgB").src="splash2.png";
+
     } else if (themeId == "light") {
       let theme = ThemeData.THEMES["dark"];
       let newIcon = $('<i class="fas fa-fw fa-' + theme.ICON + '"></i>');
       $("#currentThemeIcon").html(newIcon);
       $("#currentThemeName").html("Dark<br>Mode")
+      document.getElementById("logoimgA").src="splash1.png";
+      document.getElementById("logoimgB").src="splash1.png";
+
     }
 
 
@@ -205,11 +211,15 @@ let ThemeData = {
         let newIcon = $('<i class="fas fa-fw fa-' + theme.ICON + '"></i>');
         $("#currentThemeIcon").html(newIcon);
         $("#currentThemeName").html("Light<br>Mode")
+        document.getElementById("logoimgA").src="splash2.png";
+        document.getElementById("logoimgB").src="splash2.png";
       } else if (themeId == "light") {
         let theme = ThemeData.THEMES["dark"];
         let newIcon = $('<i class="fas fa-fw fa-' + theme.ICON + '"></i>');
         $("#currentThemeIcon").html(newIcon);
         $("#currentThemeName").html("Dark<br>Mode")
+        document.getElementById("logoimgA").src="splash1.png";  
+        document.getElementById("logoimgB").src="splash1.png";
       }
       setTimeout(function() {
         $('#splash').fadeOut(400);
@@ -237,27 +247,6 @@ const Theme = new Proxy(ThemeData, {
 ThemeData.init();
 
 $(document).ready(function() {
-  // /Commented out Dropdown menu item creating - will use when we have more theme options
-  //
-  // -- Dropdown Ribbon Button
-  // <div class="group">
-  //
-  //   <div id="ddThemeButton">
-  //     <button id="btnTheme" class="ribbon-button dropdown-toggle">
-  //       <span class="icon" id="currentThemeIcon">
-  //         <i class="fas fa-paint-brush"></i>
-  //       </span>
-  //       <span class="caption" id="currentThemeName">Dark<br>Mode</span>
-  //       <span class="h6 badge bg-green fg-white"> <i class="fas fa-brush  fa-spin"></i> New!</span>
-  //
-  //     </button>
-  //     <ul class="ribbon-dropdown grblmode" data-role="dropdown" data-duration="100" id="ddTheme">
-  //
-  //     </ul>
-  //   </div>
-  //   <span class="title">Theme</span>
-  // </div>
-  ///
   for (let themeId in ThemeData.THEMES) {
     let theme = ThemeData.THEMES[themeId];
     // let menuItem = $('<li><a href="#"><i class="fas fa-fw fa-' + theme.ICON + '"></i> ' + theme.DESCRIPTION + '</a></li>');

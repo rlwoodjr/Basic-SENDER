@@ -10,20 +10,20 @@ $(document).ready(function() {
     }
     // add new key defaults to existing allocations
     if (!keyboardShortcuts.incJogMode) {
-      keyboardShortcuts.incJogMode = "/"
+      keyboardShortcuts.incJogMode = "i"
     }
     if (!keyboardShortcuts.conJogMode) {
-      keyboardShortcuts.conJogMode = "*"
+      keyboardShortcuts.conJogMode = "c"
     }
     if (!keyboardShortcuts.gotozeroxyz) {
       keyboardShortcuts.gotozeroxyz = "del"
     }
     // add new key defaults to existing allocations (1.0.257 and older)
     if (!keyboardShortcuts.froInc) {
-      keyboardShortcuts.froInc = "q"
+      keyboardShortcuts.froInc = "f"
     }
     if (!keyboardShortcuts.froDec) {
-      keyboardShortcuts.froDec = "a"
+      keyboardShortcuts.froDec = "s"
     }
     if (!keyboardShortcuts.toInc) {
       keyboardShortcuts.toInc = "w"
@@ -39,10 +39,10 @@ $(document).ready(function() {
       keyboardShortcuts.jogSpeedP = "."
     }
     if (!keyboardShortcuts.aM) {
-      keyboardShortcuts.aM = "1"
+      keyboardShortcuts.aM = "-"
     }
     if (!keyboardShortcuts.aP) {
-      keyboardShortcuts.aP = "2"
+      keyboardShortcuts.aP = "+"
     }
 
 
@@ -54,21 +54,23 @@ $(document).ready(function() {
       yM: "down", //Y-
       zP: "pageup", //Z+
       zM: "pagedown", //Z-
-      aP: "2", //A+
-      aM: "1", //A-
+      aP: "+", //A+
+      aM: "-", //A-
 
-      stepP: "+", // Increase Step Size
-      stepM: "-", // Decrease Step Size
+      stepP: "1", // Increase Step Size
+      stepM: "2", // Decrease Step Size
       estop: "esc", // Abort / Emergency
       playpause: "space", // Start, Pause, Resume
       unlockAlarm: "end", // Clear Alarm
       home: "home", // Home All
       setzeroxyz: "insert", // Set ZERO XYZ
       gotozeroxyz: "del", // go to zero xyz
-      incJogMode: "/", // Incremental Jog Mode
-      conJogMode: "*", // Continuous Jog Mode
-      froInc: "", // Increase Feedrate Override
-      froDec: "", // Decrease Feedrate Override
+      incJogMode: "i", // Incremental Jog Mode
+      conJogMode: "c", // Continuous Jog Mode
+      froInc: "f", // Increase Feedrate Override
+      froDec: "s", // Decrease Feedrate Override
+      toInc: "w", // Increase Tool Override
+      toDec: "s", // Decrease Tool Override
       jogSpeedM: "0", // Increase Step Size
       jogSpeedP: ".", // Decrease Step Size
     }
@@ -510,31 +512,7 @@ function keyboardShortcutsEditor() {
           <input type="text" class="keyboardshortcutinput" readonly id="aPnewKey" value="` + keyboardShortcuts.aP + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#aPnewKey').addClass('primary').addClass('newKeyAssignment')">
         </div>
       </div>
-      <div class="row mb-1 ml-1 mr-1">
-        <label class="cell-sm-6"><i class="fas fa-minus fg-openbuilds fa-fw"></i> Decrease Step Size<br><span class="text-small">For Incremental Jogging</span></label>
-        <div class="cell-sm-6">
-          <input type="text" class="keyboardshortcutinput" readonly id="stepMnewKey" value="` + keyboardShortcuts.stepM + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#stepMnewKey').addClass('primary').addClass('newKeyAssignment')">
-        </div>
-      </div>
-      <div class="row mb-1 ml-1 mr-1">
-        <label class="cell-sm-6"><i class="fas fa-plus fg-openbuilds fa-fw"></i> Increase Step Size<br><span class="text-small">For Incremental Jogging</span></label>
-        <div class="cell-sm-6">
-          <input type="text" class="keyboardshortcutinput" readonly id="stepPnewKey" value="` + keyboardShortcuts.stepP + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#stepPnewKey').addClass('primary').addClass('newKeyAssignment')">
-        </div>
-      </div>
 
-      <div class="row mb-1 ml-1 mr-1">
-        <label class="cell-sm-6"><i class="fas fa-fast-backward fg-openbuilds fa-fw"></i> Decrease Jog Speed</label>
-        <div class="cell-sm-6">
-          <input type="text" class="keyboardshortcutinput" readonly id="jogSpeedMnewKey" value="` + keyboardShortcuts.jogSpeedM + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#jogSpeedMnewKey').addClass('primary').addClass('newKeyAssignment')">
-        </div>
-      </div>
-      <div class="row mb-1 ml-1 mr-1">
-        <label class="cell-sm-6"><i class="fas fa-fast-forward fg-openbuilds fa-fw"></i> Increase Jog Speed</label>
-        <div class="cell-sm-6">
-          <input type="text" class="keyboardshortcutinput" readonly id="jogSpeedPnewKey" value="` + keyboardShortcuts.jogSpeedP + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#jogSpeedPnewKey').addClass('primary').addClass('newKeyAssignment')">
-        </div>
-      </div>
 
       <div class="row mb-1 ml-1 mr-1">
         <label class="cell-sm-6"><i class="fas fa-step-forward fg-openbuilds fa-fw"></i> Incremental Jog Mode<br></label>
@@ -563,19 +541,7 @@ function keyboardShortcutsEditor() {
         </div>
       </div>
 
-      <div class="row mb-1 ml-1 mr-1">
-        <label class="cell-sm-6"><i class="far fa-hand-point-up fg-openbuilds fa-fw"></i> Increase Tool Override<br></label>
-        <div class="cell-sm-6">
-          <input type="text" class="keyboardshortcutinput" readonly id="toIncKey" value="` + keyboardShortcuts.toInc + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#toIncKey').addClass('primary').addClass('newKeyAssignment')">
-        </div>
-      </div>
-
-      <div class="row mb-1 ml-1 mr-1">
-        <label class="cell-sm-6"><i class="far fa-hand-point-down fg-openbuilds fa-fw"></i>  Decrease Tool Override<br></label>
-        <div class="cell-sm-6">
-          <input type="text" class="keyboardshortcutinput" readonly id="toDecKey" value="` + keyboardShortcuts.toDec + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#toDecKey').addClass('primary').addClass('newKeyAssignment')">
-        </div>
-      </div>
+ 
 
 
     </form>

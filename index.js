@@ -2870,8 +2870,8 @@ if (isElectron()) {
       // Create the browser window.
       jogWindow = new BrowserWindow({
         // 1366 * 768 == minimum to cater for
-        width: 1025,
-        height: 850,
+        width: 1400, 
+        height: 900,
         fullscreen: false,
         center: true,
         resizable: true,

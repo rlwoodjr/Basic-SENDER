@@ -800,7 +800,15 @@ function initSocket() {
     setJogPanel(status.comms.connectionStatus, status)
     setConsole(status.comms.connectionStatus, status)
     if (status.comms.connectionStatus != 5) {
+      $('#MachineMode').removeClass('machinestatusbtn1')
+      $('#MachineMode').addClass('machinestatusbtn2')
+      $('#MachineMode').text('IDLE')
       bellstate = false
+
+    }else{
+      $('#MachineMode').removeClass('machinestatusbtn2')
+      $('#MachineMode').addClass('machinestatusbtn1')
+      $('#MachineMode').text('ALARM')
     };
     if (status.comms.connectionStatus == 0) {
       showGrbl(false)

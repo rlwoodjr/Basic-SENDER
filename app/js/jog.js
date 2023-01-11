@@ -590,7 +590,7 @@ $(document).ready(function() {
         var distance = 1000;
         if (hasSoftLimits) {
           // Soft Limits is enabled so lets calculate maximum move distance
-          var maxdistance =getJogLimits()// parseInt(grblParams.$130)
+          var maxdistance = parseInt(grblParams.$130)
           // Positive move:
           distance = (maxdistance - (parseFloat(laststatus.machine.position.offset.x) + parseFloat(laststatus.machine.position.work.x))) - 0.005
           distance = distance.toFixed(4);
@@ -998,11 +998,6 @@ $('.aM').on('touchend mouseup', function(ev) {
 function changeStepSize(dir) {
   if (jogdist == 0.1 || jogdist == 0.0254) {
     if (dir == 1) {
-      if (unit == "mm") {
-        jogdist = 1;
-      } else if (unit == "in") {
-        jogdist = .254;
-      }
       $('.distbtn').removeClass('bd-openbuilds')
       $('#dist1').addClass('bd-openbuilds')
       $('.jogdist').removeClass('fg-openbuilds')
@@ -1015,11 +1010,6 @@ function changeStepSize(dir) {
     }
   } else if (jogdist == 1 || jogdist == 0.254) {
     if (dir == 1) {
-      if (unit == "mm") {
-        jogdist = 10;
-      } else if (unit == "in") {
-        jogdist = 2.54;
-      }
       $('.distbtn').removeClass('bd-openbuilds')
       $('#dist10').addClass('bd-openbuilds')
       $('.jogdist').removeClass('fg-openbuilds')
@@ -1028,11 +1018,6 @@ function changeStepSize(dir) {
       $('#dist10label').addClass('fg-openbuilds')
     }
     if (dir == -1) {
-      if (unit == "mm") {
-        jogdist = 0.1;
-      } else if (unit == "in") {
-        jogdist = 0.0254;
-      }
       $('.distbtn').removeClass('bd-openbuilds')
       $('#dist01').addClass('bd-openbuilds')
       $('.jogdist').removeClass('fg-openbuilds')
@@ -1042,11 +1027,6 @@ function changeStepSize(dir) {
     }
   } else if (jogdist == 10 || jogdist == 2.54) {
     if (dir == 1) {
-      if (unit == "mm") {
-        jogdist = 100;
-      } else if (unit == "in") {
-        jogdist = 25.4;
-      }
       $('.distbtn').removeClass('bd-openbuilds')
       $('#dist100').addClass('bd-openbuilds')
       $('.jogdist').removeClass('fg-openbuilds')
@@ -1055,11 +1035,6 @@ function changeStepSize(dir) {
       $('#dist100label').addClass('fg-openbuilds')
     }
     if (dir == -1) {
-      if (unit == "mm") {
-        jogdist = 1;
-      } else if (unit == "in") {
-        jogdist = 0.254;
-      }
       $('.distbtn').removeClass('bd-openbuilds')
       $('#dist1').addClass('bd-openbuilds')
       $('.jogdist').removeClass('fg-openbuilds')
@@ -1072,11 +1047,6 @@ function changeStepSize(dir) {
       // do nothing
     }
     if (dir == -1) {
-      if (unit == "mm") {
-        jogdist = 10;
-      } else if (unit == "in") {
-        jogdist = 2.54;
-      }
       $('.distbtn').removeClass('bd-openbuilds')
       $('#dist10').addClass('bd-openbuilds')
       $('.jogdist').removeClass('fg-openbuilds')
