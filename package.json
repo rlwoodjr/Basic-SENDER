@@ -45,7 +45,7 @@
   "keywords": [
     "usb"
   ],
-  "repository": "https://github.com/rlwoodjr/Basic-SENDER.git",
+  "repository": "https://github.com/rlwoodjr/Basic-SENDER",
   "build": {
     "publish": [
       {
