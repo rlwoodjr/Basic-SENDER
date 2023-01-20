@@ -964,36 +964,329 @@ $('.aM').on('touchend mouseup', function(ev) {
     home();
   })
 
-  $('#chkSize').on('click', function() {
-    var bbox2 = new THREE.Box3().setFromObject(object);
-    console.log('bbox for Draw Bounding Box: ' + object + ' Min X: ', (bbox2.min.x), '  Max X:', (bbox2.max.x), 'Min Y: ', (bbox2.min.y), '  Max Y:', (bbox2.max.y));
-    var feedrate = 5000
-    if (laststatus.machine.firmware.type === 'grbl') {
-      var moves = `
-        $J=G90G21X` + (bbox2.min.x).toFixed(3) + ` Y` + (bbox2.min.y).toFixed(3) + ` F` + feedrate + `\n
-        $J=G90G21X` + (bbox2.max.x).toFixed(3) + ` Y` + (bbox2.min.y).toFixed(3) + ` F` + feedrate + `\n
-        $J=G90G21X` + (bbox2.max.x).toFixed(3) + ` Y` + (bbox2.max.y).toFixed(3) + ` F` + feedrate + `\n
-        $J=G90G21X` + (bbox2.min.x).toFixed(3) + ` Y` + (bbox2.max.y).toFixed(3) + ` F` + feedrate + `\n
-        $J=G90G21X` + (bbox2.min.x).toFixed(3) + ` Y` + (bbox2.min.y).toFixed(3) + ` F` + feedrate + `\n
-        `;
-    } else {
-      var moves = `
-       G90\n
-       G0 X` + (bbox2.min.x).toFixed(3) + ` Y` + (bbox2.min.y).toFixed(3) + ` F` + feedrate + `\n
-       G0 X` + (bbox2.max.x).toFixed(3) + ` Y` + (bbox2.min.y).toFixed(3) + ` F` + feedrate + `\n
-       G0 X` + (bbox2.max.x).toFixed(3) + ` Y` + (bbox2.max.y).toFixed(3) + ` F` + feedrate + `\n
-       G0 X` + (bbox2.min.x).toFixed(3) + ` Y` + (bbox2.max.y).toFixed(3) + ` F` + feedrate + `\n
-       G0 X` + (bbox2.min.x).toFixed(3) + ` Y` + (bbox2.min.y).toFixed(3) + ` F` + feedrate + `\n
-       G90\n`;
-    }
-    socket.emit('runJob', {
-      data: moves,
-      isJob: false,
-      fileName: ""
-    });
+});
+
+
+
+$("#checkSizeBtn").on('click', function() {
+  $("#checkSizeDisplay").hide()
+});
+
+$('#chkSize').on('click', function() {
+
+
+            // get XYZ values for the workspace volume based on current zero point
+
+            if (laststatus != undefined && grblParams.$130 !== undefined && grblParams.$131 !== undefined && grblParams.$132 !== undefined) {
+              var machineCoordinatesBoxMinX = laststatus.machine.position.work.x - laststatus.machine.position.offset.x
+              var machineCoordinatesBoxMinY = laststatus.machine.position.work.y - laststatus.machine.position.offset.y
+              var machineCoordinatesBoxMaxZ = laststatus.machine.position.work.z - laststatus.machine.position.offset.z
+
+              var machineCoordinatesBoxMaxX = machineCoordinatesBoxMinX + parseFloat(grblParams.$130)
+              var machineCoordinatesBoxMaxY = machineCoordinatesBoxMinY + parseFloat(grblParams.$131)
+              var machineCoordinatesBoxMinZ = machineCoordinatesBoxMaxZ - parseFloat(grblParams.$132)
+            }
+
+            // get XYZ values for the extents of the loaded gcode volume
+            var bbox2 = new THREE.Box3().setFromObject(object);
+  
+          
+            //get differences in XYZ to check if te gcode is in the cutting area
+            var deltaXmax = (machineCoordinatesBoxMaxX-bbox2.max.x).toFixed(3)
+            var deltaXmin = (machineCoordinatesBoxMinX-bbox2.min.x).toFixed(3)
+            var deltaYmax = (machineCoordinatesBoxMaxY-bbox2.max.y).toFixed(3)
+            var deltaYmin = (machineCoordinatesBoxMinY-bbox2.min.y).toFixed(3)
+            var deltaZmax = (machineCoordinatesBoxMaxZ-bbox2.max.z).toFixed(3)
+            var deltaZmin = (machineCoordinatesBoxMinZ-bbox2.min.z).toFixed(3)
+
+            var maxX = grblParams.$130 -(bbox2.max.x-bbox2.min.x)
+            var maxY = grblParams.$131 -(bbox2.max.y-bbox2.min.y)
+            var maxZ = grblParams.$132 -(bbox2.max.z-bbox2.min.z)
+
+          
+            workspace.remove(machineCoordinateSpace);
+            machineCoordinateSpace = new THREE.Group();
+        
+
+           
+            var material = new THREE.LineBasicMaterial({
+              color: 0x88000,
+              transparent: true,
+              opacity: 1
+            });
+
+
+
+            //Bounding box XYZ********************************************************************************************
+            // Z min layer
+            var points = [];
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            var geometry = new THREE.BufferGeometry().setFromPoints(points);
+            machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+            // Z max layer
+            var points = [];
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+            var geometry = new THREE.BufferGeometry().setFromPoints(points);
+            machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+            // corner f/l
+            var points = [];
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+            var geometry = new THREE.BufferGeometry().setFromPoints(points);
+            machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+            // corner f/r
+            var points = [];
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+            var geometry = new THREE.BufferGeometry().setFromPoints(points);
+            machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+            // corner r/l
+            var points = [];
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+            var geometry = new THREE.BufferGeometry().setFromPoints(points);
+            machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+            // corner r/r
+            var points = [];
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+            var geometry = new THREE.BufferGeometry().setFromPoints(points);
+            machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+
+
+            //Color planes XYZ*********************************************************************************************
+            var xTitle = ''
+            var yTitle = ''
+            var zTitle = ''
+            var isOutXmax = false
+            var isOutXmin = false
+            var isOutYmax = false
+            var isOutYmin = false
+            var isOutZmax = false
+            var isOutZmin = false
+
+            var unitText=' inches'
+            var unitConvert=1;
+
+            if (localStorage.getItem('unitsMode')) {
+              if (localStorage.getItem('unitsMode') == "in"){
+                var unitText=' inches'
+                var unitConvert=25.4
+
+              }else{
+                var unitText=' mm'
+                var unitConvert=1;
+              }
+            }
+
+            var planeMaterial = new THREE.LineBasicMaterial({
+              color: '#ad2c25',
+              transparent: true,
+              opacity: .8,
+              side: THREE.DoubleSide
+            });
+
+
+            // X max layer
+            var points = [];
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+
+            if(deltaXmax<=0){
+              var geometry = new THREE.BufferGeometry().setFromPoints(points);
+              machineCoordinateSpace.add(new THREE.Mesh(geometry, planeMaterial));
+              xTitle='X'
+              isOutXmax=true
+
+
+            }else{
+              points = [];
+            }
+
+            // X min layer
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+
+            if(deltaXmin>0){
+              var geometry = new THREE.BufferGeometry().setFromPoints(points);
+              machineCoordinateSpace.add(new THREE.Mesh(geometry, planeMaterial));
+              xTitle='X'
+              isOutXmin=true
+
+            }else{
+              points = [];
+            }
+
+             // Y max layer
+            var points = [];
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+
+            if(deltaYmax<=0){
+              var geometry = new THREE.BufferGeometry().setFromPoints(points);
+              machineCoordinateSpace.add(new THREE.Mesh(geometry, planeMaterial));
+              yTitle='Y'
+              isOutYmax=true
+
+            }else{
+              points = [];
+            }
+
+            // Y min layer
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+
+            if(deltaYmin>0){
+              var geometry = new THREE.BufferGeometry().setFromPoints(points);
+              machineCoordinateSpace.add(new THREE.Mesh(geometry, planeMaterial));
+              yTitle='Y'
+              isOutYmin=true
+
+            }else{
+              points = [];
+            }
+
+            // Z max layer
+            var points = [];
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+
+            if(deltaZmax<=0){
+              var geometry = new THREE.BufferGeometry().setFromPoints(points);
+              machineCoordinateSpace.add(new THREE.Mesh(geometry, planeMaterial));
+              zTitle='Z'
+              isOutZmax=true
+
+            }else{
+              points = [];
+            }
+
+            // Z min layer
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+
+            points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+            points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+
+
+            if(deltaZmin>0){
+              var geometry = new THREE.BufferGeometry().setFromPoints(points);
+              machineCoordinateSpace.add(new THREE.Mesh(geometry, planeMaterial));
+              zTitle='Z'
+              isOutZmin=true
+
+
+            }else{
+              points = [];
+            }
+
+            workspace.add(machineCoordinateSpace);
+
+          
+
+
+            
+            $('#checkSizeDisplay').removeClass('checksizecolorGrn')
+            $('#checkSizeDisplay').addClass('checksizecolorRed')
+            var MessageTitleAxes = ''
+            $('#checkSizeText').text('')
+
+            if(isOutXmax || isOutXmin ||isOutYmax || isOutYmin ||isOutZmax || isOutZmin ){
+                var MessageTitleAxes='The Gcode is not in ' + xTitle + yTitle + zTitle + ' the cutting area'
+
+                if(maxX < 0){
+                  $('#checkSizeText').append('The Gcode is to long to fit in the X cutting area.<br>')
+                }else if(isOutXmax){
+                  $('#checkSizeText').append('Jog X- '+ (-deltaXmax/unitConvert).toFixed(3)+ unitText +' and Zero the X axis .<br>')
+                }else if(isOutXmin){
+                  $('#checkSizeText').append('Jog X+ '+ (deltaXmin/unitConvert).toFixed(3)+ unitText +' and Zero the X axis .<br>')
+                }
+
+                if(maxY < 0){
+                  $('#checkSizeText').append('The Gcode is to wide to fit in the Y cutting area<br>')
+                }else if(isOutYmax){
+                  $('#checkSizeText').append('Jog Y- '+ (-deltaYmax/unitConvert).toFixed(3)+ unitText +' and Zero the X axis .<br>')
+                }else if(isOutYmin){
+                  $('#checkSizeText').append('Jog Y+ '+ (deltaYmin/unitConvert).toFixed(3)+ unitText +' and Zero the X axis .<br>')
+                }
+
+               if(maxZ < 0){
+                $('#checkSizeText').append('The Gcode is to tall to fit in the Z cutting area.<br>')
+              }else if(isOutZmax){
+                $('#checkSizeText').append('Jog Z- '+ (-deltaZmax/unitConvert).toFixed(3)+ unitText +' and Zero the X axis .<br>')
+              }else if(isOutZmin){
+                $('#checkSizeText').append('Jog Z+ '+ (deltaZmin/unitConvert).toFixed(3)+ unitText +' and Zero the X axis .<br>')
+              }
+
+            }else{
+              var MessageTitleAxes='The Gcode is in the XYZ cutting area'
+              MessageText=''
+              $('#checkSizeDisplay').removeClass('checksizecolorRed')
+              $('#checkSizeDisplay').addClass('checksizecolorGrn')
+            }
+            
+
+          $('#checkSizeTitle').text(MessageTitleAxes)
+          
+
+          $("#checkSizeDisplay").show()
+
+
+
   });
 
-});
+   $("#checkSizeBtn").on('click', function() {
+    //workspace.remove(machineCoordinateSpace);
+    $("#checkSizeDisplay").hide()
+  });     
+  
+  $("#checkSizeDisplay").on('click', function() {
+    //workspace.remove(machineCoordinateSpace);
+    $("#checkSizeDisplay").hide()
+  }); 
+
+
 
 function changeStepSize(dir) {
   if (jogdist == 0.1 || jogdist == 0.0254) {
@@ -1105,8 +1398,6 @@ function SetActiveZeros(){
   if($("#AAxisDisplay").is(':checked')){jogString+=" A0"}
 
   sendGcode( 'G10 P0 L20'+jogString)
-  
-
 }
 
 

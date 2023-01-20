@@ -35,6 +35,8 @@ $(document).ready(function() {
   var Z =  (localStorage.getItem('ZaxisDRO'))
   var A = (localStorage.getItem('AaxisDRO')) 
 
+$('#checkSizeDisplay').hide()
+
 
 if (X!='false'){
     $('#XAxisDisplay').prop('checked',true) 

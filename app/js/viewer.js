@@ -592,7 +592,19 @@ function resetView(object) {
 }
 
 
+
+function setMachineButton(data){
+laststatus.machine.name=data
+drawMachineCoordinates(laststatus) 
+}
+
+
 function drawMachineCoordinates(status) {
+
+ 
+
+var bob=laststatus.machine.name
+var bob2=status.machine.name
 
   if (laststatus != undefined && grblParams.$130 !== undefined && grblParams.$131 !== undefined && grblParams.$132 !== undefined) {
     var machineCoordinatesBoxMaxX = status.machine.position.work.x - status.machine.position.offset.x
@@ -602,11 +614,6 @@ function drawMachineCoordinates(status) {
     var machineCoordinatesBoxMinX = machineCoordinatesBoxMaxX + parseFloat(grblParams.$130)
     var machineCoordinatesBoxMinY = machineCoordinatesBoxMaxY + parseFloat(grblParams.$131)
     var machineCoordinatesBoxMinZ = machineCoordinatesBoxMaxZ - parseFloat(grblParams.$132)
-
-    //console.log("X", machineCoordinatesBoxMinX, machineCoordinatesBoxMaxX)
-    //console.log("Y", machineCoordinatesBoxMinY, machineCoordinatesBoxMaxY)
-    //console.log("Z", machineCoordinatesBoxMinZ, machineCoordinatesBoxMaxZ)
-
 
     workspace.remove(machineCoordinateSpace);
     machineCoordinateSpace = new THREE.Group();

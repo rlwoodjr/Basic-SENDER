@@ -247,3 +247,13 @@ select {
 .machineicon:hover {
   color: #CE352C !important;
 }
+
+.checksizecolorRed {
+  background-color:#ad2c25;
+  color: white;
+}
+
+.checksizecolorGrn {
+  background-color:#60a917;
+  color: white;
+}
