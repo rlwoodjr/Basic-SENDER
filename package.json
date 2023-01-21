@@ -1,6 +1,6 @@
 {
   "name": "bobscnc-basic-sender",
-  "version": "0.0.89",
+  "version": "0.0.90",
   "license": "AGPL-3.0",
   "description": "Basic SENDER - CNC Machine Interface Software",
   "author": "github.com/rlwoodjr <bob@bobscnc.com>",
@@ -31,8 +31,9 @@
     "multer": "^1.4.4",
     "ncp": "^2.0.0",
     "node-abi": "^3.28.0",
-    "node-gyp": "^9.3.0",
+    "node-gyp": "^9.3.1",
     "object-assign": "^4.1.1",
+    "prebuild-install": "^7.1.1",
     "rimraf": "^3.0.2",
     "serialport": "^10.4.0",
     "socket.io": "^2.5.0"
