@@ -35,8 +35,8 @@ jobs:
           mkdir -p ~/private_keys/
           echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
 
-      - name: Build/release Electron app
-        uses: samuelmeuli/action-electron-builder@v1
+      - name: Electron Builder Action
+        uses: samuelmeuli/action-electron-builder@v1.6.0
         with:
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
