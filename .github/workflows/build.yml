@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         #os: [macos-11, ubuntu-latest, windows-2019]
-        os: [macos-latest, windows-2019, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest, windows-2019]
 
 
     steps:
@@ -35,9 +35,7 @@ jobs:
           mkdir -p ~/private_keys/
           echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
 
-      -# name: Electron Builder Action
-       # uses: samuelmeuli/action-electron-builder@v1.6.0
-       - name: Build/release Electron app
+      - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1
         with:
           # GitHub token, automatically provided to the action
