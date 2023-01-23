@@ -1,6 +1,6 @@
 {
   "name": "bobscnc-basic-sender",
-  "version": "0.0.94",
+  "version": "0.0.95",
   "license": "AGPL-3.0",
   "description": "Basic SENDER - CNC Machine Interface Software",
   "author": "github.com/rlwoodjr <bob@bobscnc.com>",
@@ -31,9 +31,7 @@
     "multer": "^1.4.4",
     "ncp": "^2.0.0",
     "node-abi": "^3.28.0",
-    "node-gyp": "^9.3.1",
-    "object-assign": "^4.1.1",
-    "prebuild-install": "^7.1.1",
+    "node-gyp": "^9.3.0",
     "rimraf": "^3.0.2",
     "serialport": "^10.4.0",
     "socket.io": "^2.5.0"
@@ -42,7 +40,8 @@
   "scripts": {
     "start": "echo \"Error: no start script specified\" && exit 0",
     "test": "echo \"Error: no test specified\" && exit 0",
-    "release": "echo \"When you want to create a new release, follow these steps:\" && echo \"1) Update the version in your project's package.json file (e.g. 1.2.3)\" && echo \"2) Commit that change (git commit -am v1.2.3)\" && echo \"3) Tag your commit (git tag v1.2.3). Make sure your tag name's format is v*.*.*. Your workflow will use this tag to detect when to create a release\" && echo \"4) Push your changes to GitHub (git push && git push --tags)\""
+    "release": "echo \"When you want to create a new release, follow these steps:\" && echo \"1) Update the version in your project's package.json file (e.g. 1.2.3)\" && echo \"2) Commit that change (git commit -am v1.2.3)\" && echo \"3) Tag your commit (git tag v1.2.3). Make sure your tag name's format is v*.*.*. Your workflow will use this tag to detect when to create a release\" && echo \"4) Push your changes to GitHub (git push && git push --tags)\"",
+    "run-local": "electron ."
   },
   "keywords": [
     "usb"
