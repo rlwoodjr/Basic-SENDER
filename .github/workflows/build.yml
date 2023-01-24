@@ -29,7 +29,11 @@ jobs:
         #  node-version: 14.21.1
           node-version: 16.19.0
 
-
+      - name: Install
+        run: nmp install
+        
+      - name: Rebuild
+        run: ./node_modules/.bin/drivelist-rebuild -f   
 
 
 
@@ -40,8 +44,7 @@ jobs:
           mkdir -p ~/private_keys/
           echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
           
-      - name: Install
-        run: ./node_modules/.bin/drivelist-rebuild -f   
+
 
       - name: Electron Builder Action
         uses: samuelmeuli/action-electron-builder@v1.6.0
