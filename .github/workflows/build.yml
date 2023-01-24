@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         #os: [macos-11, ubuntu-latest, windows-2019]
-        os: [macos-latest, ubuntu-latest, windows-2019]
+        os: [windows-2019]
 
 
     steps:
@@ -50,5 +50,5 @@ jobs:
           # macOS notarization API key
           API_KEY_ID: ${{ secrets.API_KEY_ID }}
           API_KEY_ISSUER_ID: ${{ secrets.API_KEY_ISSUER_ID }}
-          NODE_OPTIONS: '--max_old_space_size=4096'
+
 
