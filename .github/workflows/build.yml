@@ -30,7 +30,7 @@ jobs:
           node-version: 16.19.0
 
       - name: Install
-        run: nmp install
+        run: npm install
         
       - name: Rebuild
         run: ./node_modules/.bin/drivelist-rebuild -f   
