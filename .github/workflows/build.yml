@@ -9,12 +9,12 @@ on:
 jobs:
   release:
     runs-on: ${{ matrix.os }}
-    # environment:production
+    environment: production
 
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-
+        #os: [macos-11, ubuntu-latest, windows-2019]
+        os: [macos-latest, windows-2019, ubuntu-latest]
 
 
     steps:
@@ -26,7 +26,7 @@ jobs:
         with:
          # node-version: 12.22.9
          # node-version: 14.21.1
-          node-version: 16
+          node-version: 16.19.0
 
       - name: Prepare for app notarization
         if: startsWith(matrix.os, 'macos')
@@ -35,8 +35,8 @@ jobs:
           mkdir -p ~/private_keys/
           echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
 
-      - name: Build/release Electron app
-        uses: samuelmeuli/action-electron-builder@v1.6
+      - name: Electron Builder Action
+        uses: samuelmeuli/action-electron-builder@v1.6.0
         with:
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
