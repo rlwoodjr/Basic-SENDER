@@ -40,8 +40,13 @@ jobs:
       - name: Build Electron 
         run: ./node_modules/.bin/electron-rebuild -f
         
-      - name: Release
-        run: electron-builder -c.npmRebuild=false
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+         repo_token: ${{ secrets.GITHUB_TOKEN }}
+         file: target/release/${{ matrix.artifact_name }}
+         asset_name: ${{ matrix.asset_name }}
+         tag: ${{ github.ref }}
 
     
 
