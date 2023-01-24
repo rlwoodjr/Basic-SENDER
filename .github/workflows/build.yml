@@ -35,10 +35,14 @@ jobs:
           echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
 
       - name: Install dependencies
-        run: yarn
+        run: npm install
 
-      - name: Build Electron release
-        run: yarn run release
+      - name: Build Electron 
+        run: ./node_modules/.bin/electron-rebuild -f
+        
+      - name: Release
+        run: ./node_modules/.bin/electron-builder -c.npmRebuild=false
+
     
 
 
