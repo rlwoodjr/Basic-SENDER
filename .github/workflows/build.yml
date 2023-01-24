@@ -29,13 +29,6 @@ jobs:
         #  node-version: 14.21.1
           node-version: 16.19.0
 
-      - name: Install
-        run: npm install
-        
-      - name: Rebuild
-        run: ./node_modules/.bin/electron-rebuild -f
-
-
 
       - name: Prepare for app notarization
         if: startsWith(matrix.os, 'macos')
