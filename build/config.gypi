@@ -35,7 +35,7 @@
     "node_debug_lib": "false",
     "node_enable_d8": "false",
     "node_install_npm": "true",
-    "node_module_version": 83,
+    "node_module_version": 93,
     "node_no_browser_globals": "false",
     "node_prefix": "/usr/local",
     "node_release_urlbase": "https://nodejs.org/download/release/",
