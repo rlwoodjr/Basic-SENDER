@@ -28,6 +28,10 @@ jobs:
          # node-version: 12.22.9
          # node-version: 14.21.1
           node-version: 16.19.0
+          cache: npm
+
+      - name: Install
+      - run: npm rebuild drivelist --build-from-source   
 
 
       - name: Prepare for app notarization
