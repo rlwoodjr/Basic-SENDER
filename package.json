@@ -34,7 +34,8 @@
     "node-gyp": "^9.3.0",
     "rimraf": "^3.0.2",
     "serialport": "^10.4.0",
-    "socket.io": "^2.5.0"
+    "socket.io": "^2.5.0",
+    "prebuild-install": "^5.3.3"
   },
   "main": "index.js",
   "scripts": {
