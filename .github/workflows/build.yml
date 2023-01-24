@@ -40,7 +40,7 @@ jobs:
 
 
       - name: Electron Builder Action
-        uses: samuelmeuli/action-electron-builder@v1.6.0
+        uses: actions/create-release@latest
         with:
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
