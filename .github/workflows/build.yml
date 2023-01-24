@@ -33,7 +33,7 @@ jobs:
         run: npm install
         
       - name: Rebuild
-        run: ./node_modules/.bin/drivelist-rebuild -f   
+        run: drivelist-rebuild -f   
 
 
 
