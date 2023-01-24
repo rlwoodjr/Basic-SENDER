@@ -41,7 +41,7 @@ jobs:
         run: ./node_modules/.bin/electron-rebuild -f
         
       - name: Release
-        run: ./node_modules/.bin/electron-builder -c.npmRebuild=false
+        run: electron-builder -c.npmRebuild=false
 
     
 
