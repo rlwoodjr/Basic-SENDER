@@ -41,7 +41,7 @@ jobs:
           echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
           
       - name: Install
-        run: npm rebuild drivelist --build-from-source   
+        run: ./node_modules/.bin/drivelist-rebuild -f   
 
       - name: Electron Builder Action
         uses: samuelmeuli/action-electron-builder@v1.6.0
