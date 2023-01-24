@@ -41,8 +41,7 @@ jobs:
           echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
           
       - name: Install
-      - uses: balena-io-modules/drivelist@6.4.3
-      - run: npm rebuild drivelist --build-from-source   
+        run: npm rebuild drivelist --build-from-source   
 
       - name: Electron Builder Action
         uses: samuelmeuli/action-electron-builder@v1.6.0
