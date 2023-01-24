@@ -331,7 +331,11 @@ function initSocket() {
 
   });
 
-
+  socket.on("machinename", function(data) {
+    if (typeof setMachineButton !== 'undefined') {
+      setMachineButton(data)
+    }
+  });
 
   socket.on("queueCount", function(data) {
     // calc percentage
@@ -852,11 +856,11 @@ function initSocket() {
 
 
     // Enable or disable 4th axis UI elements
-    if (status.machine.has4thAxis) {
-      $(".4thaxis-active").show();
-    } else {
-      $(".4thaxis-active").hide();
-    }
+    //if (status.machine.has4thAxis) {
+    //  $(".4thaxis-active").show();
+    //} else {
+    //  $(".4thaxis-active").hide();
+    //}
 
 
     laststatus = status;
@@ -1270,3 +1274,4 @@ function msToTime(duration) {
 
   return hours + "h" + minutes + "m";
 }
+

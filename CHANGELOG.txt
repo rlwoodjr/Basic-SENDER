@@ -1,4 +1,6 @@
-v.0.0.82: Added dark/light theme, updated Rasp Pi config., updating to recent openbuilds version
+v.0.0.83: Change 'Check Size' button to show the gcode position relation to the cutting area.
+v.0.0.82: Added dark/light theme, updated Rasp Pi config., updating to recent openbuilds version,
+          add units to surfacing wizards.
 v.0.0.51: Added cutting area box
 v.0.0.49: fix jog distance bug for custom jog sizes
 v.0.0.48: fix jog distance bug for custom jog sizes, turn A axis off by default.

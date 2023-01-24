@@ -14,7 +14,8 @@ jobs:
     strategy:
       matrix:
         #os: [macos-11, ubuntu-latest, windows-2019]
-        os: [macos-latest, ubuntu-latest, windows-2019]
+        os: [windows-2019]
+
 
 
     steps:
@@ -25,6 +26,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
          # node-version: 12.22.9
+        #  node-version: 14.21.1
           node-version: 16.19.0
 
       - name: Prepare for app notarization

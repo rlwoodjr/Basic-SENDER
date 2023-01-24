@@ -2,20 +2,6 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Client",
-      "request": "launch",
-      "type": "chrome",
-      "url": "http://localhost:3000",
-    // "url": "http://192.168.1.112:3000/jog",
-      "webRoot": "${workspaceFolder}/app"
-  },
-  {
-      "type": "node",
-      "request": "launch",
-      "name": "Server",
-      "program": "${workspaceFolder}/index.js"
-  },
-    {
       "name": "Debug Main Process",
       "type": "node",
       "request": "launch",
@@ -30,15 +16,5 @@
       "args" : ["."],
       "outputCapture": "std"
     }
-  ],
-
-
-
-
-"compounds": [
-    {
-        "name": "Server/Client",
-        "configurations": ["Server", "Client"],
-    }
-]
+  ]
 }
