@@ -33,7 +33,7 @@ jobs:
         run: npm install
         
       - name: Rebuild
-        run: drivelist-rebuild -f   
+        run: ./node_modules/.bin/electron-rebuild -f
 
 
 
