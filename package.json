@@ -1,6 +1,6 @@
 {
   "name": "bobscnc-basic-sender",
-  "version": "0.0.108",
+  "version": "0.0.110",
   "license": "AGPL-3.0",
   "description": "Basic SENDER - CNC Machine Interface Software",
   "author": "github.com/rlwoodjr <bob@bobscnc.com>",
@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "avrgirl-arduino": "^5.0.1",
+    "ci": "^2.2.0",
     "detect-rpi": "^1.4.0",
     "directory-tree": "^2.3.1",
     "drivelist": "11.0.4",
