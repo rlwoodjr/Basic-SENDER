@@ -25,16 +25,17 @@ jobs:
         uses: actions/setup-node@v1
         with:
          # node-version: 12.22.9
+         # node-version: 14.21.1
           node-version: 16.19.0
 
       - name: Prepare for app notarization
         if: startsWith(matrix.os, 'macos')
         # Import Apple API key for app notarization on macOS
-        run: 
+        run: |
           mkdir -p ~/private_keys/
           echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
 
-      - name: Build/release Electron app
+      - name: Electron Builder Action
         uses: samuelmeuli/action-electron-builder@v1.6.0
         with:
           # GitHub token, automatically provided to the action
