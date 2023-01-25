@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         #os: [macos-11, ubuntu-latest, windows-2019]
-        os: [macos-latest, ubuntu-latest, , windows-2019]
+        os: [macos-latest, ubuntu-latest, windows-2019]
 
 
     steps:
@@ -30,7 +30,7 @@ jobs:
       - name: Prepare for app notarization
         if: startsWith(matrix.os, 'macos')
         # Import Apple API key for app notarization on macOS
-        run: |
+        run: 
           mkdir -p ~/private_keys/
           echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
 
