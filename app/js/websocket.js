@@ -332,9 +332,7 @@ function initSocket() {
   });
 
   socket.on("machinename", function(data) {
-    if (typeof setMachineButton !== 'undefined') {
       setMachineButton(data)
-    }
   });
 
   socket.on("queueCount", function(data) {
@@ -662,13 +660,13 @@ function initSocket() {
                 posa=status.machine.position.work.a*Math.PI/180
                 cone.rotation.x=-posa-Math.PI/2
                 cone.position.x = status.machine.position.work.x
-                cone.position.y = ((status.machine.position.work.z+20)*Math.sin(posa)).toFixed(4)
-                cone.position.z = (status.machine.position.work.z+20)*Math.cos(posa).toFixed(4)
+                cone.position.y = ((status.machine.position.work.z)*Math.sin(posa)).toFixed(4)
+                cone.position.z = (status.machine.position.work.z)*Math.cos(posa).toFixed(4)
               }else{
                 cone.rotation.x=-Math.PI/2
                 cone.position.x = status.machine.position.work.x
                 cone.position.y = status.machine.position.work.y
-                cone.position.z = status.machine.position.work.z+20
+                cone.position.z = status.machine.position.work.z
               }
             
 

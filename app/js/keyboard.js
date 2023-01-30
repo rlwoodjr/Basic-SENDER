@@ -326,7 +326,7 @@ function bindKeys() {
       $(document).bind('keydown', keyboardShortcuts.gotozeroxyz, function(e) {
         e.preventDefault();
         sendGcode('G21 G90');
-        sendGcode('G0 Z5');
+        sendGcode('G0 Z0');
         sendGcode('G0 X0 Y0');
         sendGcode('G0 Z0');
       });

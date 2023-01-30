@@ -162,6 +162,7 @@ let ThemeData = {
       $("#currentThemeName").html("Light<br>Mode")
       document.getElementById("logoimgA").src="splash2.png";
       document.getElementById("logoimgB").src="splash2.png";
+      document.getElementById("logoimgC").src="BobscncLight.png";
 
     } else if (themeId == "light") {
       let theme = ThemeData.THEMES["dark"];
@@ -170,6 +171,7 @@ let ThemeData = {
       $("#currentThemeName").html("Dark<br>Mode")
       document.getElementById("logoimgA").src="splash1.png";
       document.getElementById("logoimgB").src="splash1.png";
+      document.getElementById("logoimgC").src="BobscncDark.png";
 
     }
 

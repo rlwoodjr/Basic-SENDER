@@ -3,11 +3,6 @@ function setConnectBar(val, status) {
   if (val == 0) { // Not Connected Yet
     // Status Badge
     $('#connectStatus').html("Port: Not Connected");
-
-    $("#clearSettings").attr('disabled', true);
-    $("#clearWCO").attr('disabled', true);
-    $("#clearEEPROM").attr('disabled', true);
-
     // Connect/Disconnect Button
     $("#disconnectBtn").hide();
     $("#flashBtn").hide();
@@ -23,16 +18,13 @@ function setConnectBar(val, status) {
     $('#portUSB').parent(".select").addClass('success')
     $('#portUSB').parent(".select").removeClass('alert')
     $('.macrobtn').removeClass('disabled')
+
     // Set Port Dropdown to Current Value
     // Not applicable to Status 0 as its set by populatePortsMenu();
 
   } else if (val == 1 || val == 2) { // Connected, but not Playing yet
     // Status Badge
     $('#connectStatus').html("Port: Connected");
-
-    $("#clearSettings").attr('disabled', false);
-    $("#clearWCO").attr('disabled', false);
-    $("#clearEEPROM").attr('disabled', false);
     // Connect/Disconnect Button
     $("#connectBtn").hide();
    // $("#scanBtn").hide();
@@ -49,16 +41,14 @@ function setConnectBar(val, status) {
     // Set Port Dropdown to Current Value
     $("#portUSB").val(status.comms.interfaces.activePort);
     $('.macrobtn').removeClass('disabled')
+  
 
   } else if (val == 3) { // Busy Streaming GCODE
     // Status Badge
     $('#connectStatus').html("Port: Connected");
-    $("#clearSettings").attr('disabled', true);
-    $("#clearWCO").attr('disabled', true);
-    $("#clearEEPROM").attr('disabled', true);
     // Connect/Disconnect Button
     $("#connectBtn").hide();
-    //$("#scanBtn").hide();
+   // $("#scanBtn").hide();
     $("#driverBtn").hide();
     $('#portUSB').parent().hide();
     $("#connectBtn").attr('disabled', false);
@@ -75,10 +65,6 @@ function setConnectBar(val, status) {
   } else if (val == 4) { // Paused
     // Status Badge
     $('#connectStatus').html("Port: Connected");
-
-    $("#clearSettings").attr('disabled', true);
-    $("#clearWCO").attr('disabled', true);
-    $("#clearEEPROM").attr('disabled', true);
     // Connect/Disconnect Button
     $("#connectBtn").hide();
    // $("#scanBtn").hide();
@@ -98,9 +84,6 @@ function setConnectBar(val, status) {
   } else if (val == 5) { // Alarm State
     // Status Badge
     $('#connectStatus').html("Port: Connected");
-    $("#clearSettings").attr('disabled', false);
-    $("#clearWCO").attr('disabled', false);
-    $("#clearEEPROM").attr('disabled', false);
     // Connect/Disconnect Button
     $("#connectBtn").hide();
    // $("#scanBtn").hide();
@@ -121,9 +104,6 @@ function setConnectBar(val, status) {
     // Status Badge
     $('#connectStatus').html("Port: Flashing");
     // Connect/Disconnect Button
-    $("#clearSettings").attr('disabled', true);
-    $("#clearWCO").attr('disabled', true);
-    $("#clearEEPROM").attr('disabled', true);
     $("#connectBtn").hide();
     //$("#scanBtn").hide();
     $("#driverBtn").hide();
@@ -167,6 +147,7 @@ function setControlBar(val, status) {
     }
 
     $('.estop').hide()
+    $('#controlBtnGrp').hide();
   } else if (val == 1 || val == 2) { // Connected, but not Playing yet
     $('#grblProbeMenu').show().attr('disabled', false);
     if (typeof ace !== 'undefined') {
@@ -218,6 +199,7 @@ function setControlBar(val, status) {
       $('#homeBtn').show().attr('disabled', true);
     }
     $('.estop').show()
+    $('#controlBtnGrp').show();
   } else if (val == 3) { // Busy Streaming GCODE
     $('#grblProbeMenu').show().attr('disabled', true);
 
@@ -240,6 +222,7 @@ function setControlBar(val, status) {
       $('#homeBtn').show().attr('disabled', true);
     }
     $('.estop').show()
+    $('#controlBtnGrp').show();
   } else if (val == 4) { // Paused
     $('#grblProbeMenu').show().attr('disabled', true);
 
@@ -268,6 +251,7 @@ function setControlBar(val, status) {
       $('#homeBtn').show().attr('disabled', true);
     }
     $('.estop').show()
+    $('#controlBtnGrp').show();
   } else if (val == 5) { // Alarm State
     $('#grblProbeMenu').show().attr('disabled', true);
 
@@ -291,6 +275,7 @@ function setControlBar(val, status) {
       $('#homeBtn').show().attr('disabled', true);
     }
     $('.estop').show()
+    $('#controlBtnGrp').show();
   } else if (val == 6) { // Firmware Upgrade State
     $('#grblProbeMenu').show().attr('disabled', true);
 
@@ -313,6 +298,7 @@ function setControlBar(val, status) {
       $('#homeBtn').show().attr('disabled', true);
     }
     $('.estop').hide()
+    $('#controlBtnGrp').hide();
   }
 }
 

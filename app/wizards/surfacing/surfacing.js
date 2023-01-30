@@ -314,7 +314,7 @@ G4 P1.8 ; Wait for spindle to come up to speed\n`
 
   gcode +=`G0 Z` + (passRadius+ZSafe) + `\n`
   gcode += `G0 X0 A0\n`
-  gcode +=`G0 Z`+ (passRadius+1) +`\n` 
+  gcode +=`G0 Z`+ (passRadius) +`\n` 
 
   for(i=0;i<passCount;i++){
     gcode +=`G1 Z`+ (passRadius-passDepth*(i+1)) + ` F`+ FR +`\n`;
@@ -322,7 +322,7 @@ G4 P1.8 ; Wait for spindle to come up to speed\n`
     gcode += `G92 A0 ; reset A0\n`
     gcode += `G0 Z` + (passRadius+ZSafe) + ` A0\n`
     gcode += 'G0 X0\n'
-    gcode += `G0 Z`+ (passRadius+1) +`\n`
+    gcode += `G0 Z`+ (passRadius) +`\n`
 
   }
 

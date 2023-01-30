@@ -594,17 +594,26 @@ function resetView(object) {
 
 
 function setMachineButton(data){
-laststatus.machine.name=data
-drawMachineCoordinates(laststatus) 
+    laststatus.machine.name=data
+    if(laststatus.machine.name ==='Revolution'){
+      $('#XAxisDisplay').prop('checked',true)
+      $('#YAxisDisplay').prop('checked',false) 
+      $('#ZAxisDisplay').prop('checked',true) 
+      $('#AAxisDisplay').prop('checked',true) 
+    }else{
+
+      $('#XAxisDisplay').prop('checked',true)
+      $('#YAxisDisplay').prop('checked',true) 
+      $('#ZAxisDisplay').prop('checked',true) 
+      $('#AAxisDisplay').prop('checked',false) 
+    }
+    axisDisplayChange()
+    drawMachineCoordinates(laststatus) 
 }
 
 
 function drawMachineCoordinates(status) {
 
- 
-
-var bob=laststatus.machine.name
-var bob2=status.machine.name
 
   if (laststatus != undefined && grblParams.$130 !== undefined && grblParams.$131 !== undefined && grblParams.$132 !== undefined) {
     var machineCoordinatesBoxMaxX = status.machine.position.work.x - status.machine.position.offset.x
@@ -624,55 +633,79 @@ var bob2=status.machine.name
       opacity: 1
     });
 
-    // Z min layer
-    var points = [];
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
-    var geometry = new THREE.BufferGeometry().setFromPoints(points);
-    machineCoordinateSpace.add(new THREE.Line(geometry, material));
+    var materialcylinder = new THREE.LineBasicMaterial({
+      color: 0x888888,
+      transparent: true,
+      opacity: 0.1,
+      side: THREE.BackSide
+    });
 
-    // Z max layer
-    var points = [];
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
-    var geometry = new THREE.BufferGeometry().setFromPoints(points);
-    machineCoordinateSpace.add(new THREE.Line(geometry, material));
 
-    // corner f/l
-    var points = [];
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
-    var geometry = new THREE.BufferGeometry().setFromPoints(points);
-    machineCoordinateSpace.add(new THREE.Line(geometry, material));
+    if(status.machine.name ==='Revolution'){
 
-    // corner f/r
-    var points = [];
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
-    var geometry = new THREE.BufferGeometry().setFromPoints(points);
-    machineCoordinateSpace.add(new THREE.Line(geometry, material));
+      var cylLength = parseFloat(grblParams.$130)
+      var cylRadius = machineCoordinatesBoxMaxZ
+      
+      var geometry = new THREE.CylinderGeometry( cylRadius, cylRadius, cylLength, 32 );
+      var cylinder=new THREE.Mesh(geometry, materialcylinder)
+      cylinder.rotation.z = Math.PI/2
+      cylinder.position.x=(cylLength/2 + machineCoordinatesBoxMaxX)
+      
+  
+      machineCoordinateSpace.add(cylinder);
+      workspace.add(machineCoordinateSpace);
 
-    // corner r/l
-    var points = [];
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
-    var geometry = new THREE.BufferGeometry().setFromPoints(points);
-    machineCoordinateSpace.add(new THREE.Line(geometry, material));
+    }else{  
 
-    // corner r/r
-    var points = [];
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
-    var geometry = new THREE.BufferGeometry().setFromPoints(points);
-    machineCoordinateSpace.add(new THREE.Line(geometry, material));
+      // Z min layer
+      var points = [];
+      points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+      points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+      points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+      points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+      points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+      var geometry = new THREE.BufferGeometry().setFromPoints(points);
+      machineCoordinateSpace.add(new THREE.Line(geometry, material));
 
-    workspace.add(machineCoordinateSpace);
+      // Z max layer
+      var points = [];
+      points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+      points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+      points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+      points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+      points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+      var geometry = new THREE.BufferGeometry().setFromPoints(points);
+      machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+      // corner f/l
+      var points = [];
+      points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+      points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+      var geometry = new THREE.BufferGeometry().setFromPoints(points);
+      machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+      // corner f/r
+      var points = [];
+      points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+      points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+      var geometry = new THREE.BufferGeometry().setFromPoints(points);
+      machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+      // corner r/l
+      var points = [];
+      points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
+      points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
+      var geometry = new THREE.BufferGeometry().setFromPoints(points);
+      machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+      // corner r/r
+      var points = [];
+      points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
+      points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
+      var geometry = new THREE.BufferGeometry().setFromPoints(points);
+      machineCoordinateSpace.add(new THREE.Line(geometry, material));
+
+      workspace.add(machineCoordinateSpace);
+    }
   }
-
 }
