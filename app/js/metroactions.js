@@ -7,6 +7,9 @@ function manualcontrolPanel() {
 function troubleshootingPanel() {
   $('#manualControlPanel').hide()
   $('#troubleshootingPanel').show()
+  $('#lastLineRan').html(localStorage.getItem('gcodeLineNumber'))
+
+
 }
 
 

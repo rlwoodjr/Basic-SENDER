@@ -97,7 +97,7 @@ $(document).ready(function() {
     var LineNumber=localStorage.getItem('gcodeLineNumber')
       $('#lastLineRan').html(" "+ LineNumber)
     }else{
-      $('#lastLineRan').html('NA')
+      $('#lastLineRan').html(0)
     }
   
   
