@@ -1025,7 +1025,7 @@ $('#chkSize').on('click', function() {
 
 //Check for Revolution (A axis), draw bounding cylinder
 
-  if(laststatus.machine.name ==='Revolution'){
+  if(laststatus.machine.name ==='XZA'){
 
       var cylLength = parseFloat(grblParams.$130)
       var cylRadius = machineCoordinatesBoxMaxZ

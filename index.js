@@ -1162,9 +1162,15 @@ io.on("connection", function(socket) {
 
         // Grbl $I parser
         if (data.indexOf("[VER:") === 0) {
-          status.machine.name = data.split('1.1h ')[1].split('.')[0] //.split(':')[2].split(']')[0].toLowerCase()
+          if(data.indexOf("Revolution") > 0){
+          status.machine.name = "XZA"
+          io.sockets.emit("machinename","XZA") //.split(':')[2].split(']')[0].toLowerCase()//data.split(':')[2].split(']')[0].toLowerCase());
+        }else{
+          status.machine.name = "XYZ"
+          io.sockets.emit("machinename","XYZ")
+        }
           io.sockets.emit("status", status);
-          io.sockets.emit("machinename", data.split('1.1h ')[1].split('.')[0]) //.split(':')[2].split(']')[0].toLowerCase()//data.split(':')[2].split(']')[0].toLowerCase());
+         
         }
 
         if (data.indexOf("[OPT:") === 0) {

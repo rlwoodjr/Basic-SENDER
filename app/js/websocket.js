@@ -347,6 +347,7 @@ function initSocket() {
     }
     if(total>done){
       localStorage.setItem('gcodeLineNumber',done); //recovery line number
+      //startFromHere()
     }
       
     

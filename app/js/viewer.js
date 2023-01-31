@@ -595,7 +595,7 @@ function resetView(object) {
 
 function setMachineButton(data){
     laststatus.machine.name=data
-    if(laststatus.machine.name ==='Revolution'){
+    if(laststatus.machine.name ==='XZA'){
       $('#XAxisDisplay').prop('checked',true)
       $('#YAxisDisplay').prop('checked',false) 
       $('#ZAxisDisplay').prop('checked',true) 
@@ -641,10 +641,10 @@ function drawMachineCoordinates(status) {
     });
 
 
-    if(status.machine.name ==='Revolution'){
+    if(status.machine.name ==='XZA'){
 
       var cylLength = parseFloat(grblParams.$130)
-      var cylRadius = machineCoordinatesBoxMaxZ
+      var cylRadius = machineCoordinatesBoxMaxZ+.001
       
       var geometry = new THREE.CylinderGeometry( cylRadius, cylRadius, cylLength, 32 );
       var cylinder=new THREE.Mesh(geometry, materialcylinder)

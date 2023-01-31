@@ -597,7 +597,27 @@ function softlimits(){
       $('#softlimiticon').addClass('fg-green')
  
   }
-  
+}
 
-  
+
+
+
+function startFromHere(){
+  var LineNumber = 0
+  var GcodeLine = ''
+
+  if (localStorage.getItem('gcodeLineNumber')){
+    LineNumber=localStorage.getItem('gcodeLineNumber')
+  }
+  GcodeLine = editor.session.getLine(LineNumber);
+  if (GcodeLine) {
+    GcodeLine = GcodeLine.split('\n');
+    for (var i = 0; i < GcodeLine.length; i++) {
+      var line = GcodeLine[i].replace("%", "").split(';'); // Remove everything after ; = comment
+      line = line[0].trim();
+      if (line.length > 0) {
+        bob=line.match(/z/gi)
+      }
+    }
+  }
 }
