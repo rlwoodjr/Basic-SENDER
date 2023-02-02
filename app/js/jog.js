@@ -1281,17 +1281,17 @@ $('#chkSize').on('click', function() {
       if(maxY < 0){
         $('#checkSizeText').append('The Gcode is to wide to fit in the Y cutting area<br>')
       }else if(isOutYmax){
-        $('#checkSizeText').append('Jog Y- '+ (-deltaYmax/unitConvert).toFixed(3)+ unitText +' and Zero the X axis .<br>')
+        $('#checkSizeText').append('Jog Y- '+ (-deltaYmax/unitConvert).toFixed(3)+ unitText +' and Zero the Y axis .<br>')
       }else if(isOutYmin){
-        $('#checkSizeText').append('Jog Y+ '+ (deltaYmin/unitConvert).toFixed(3)+ unitText +' and Zero the X axis .<br>')
+        $('#checkSizeText').append('Jog Y+ '+ (deltaYmin/unitConvert).toFixed(3)+ unitText +' and Zero the Y axis .<br>')
       }
 
       if(maxZ < 0){
       $('#checkSizeText').append('The Gcode is to tall to fit in the Z cutting area.<br>')
     }else if(isOutZmax){
-      $('#checkSizeText').append('Jog Z- '+ (-deltaZmax/unitConvert).toFixed(3)+ unitText +' and Zero the X axis .<br>')
+      $('#checkSizeText').append('Jog Z- '+ (-deltaZmax/unitConvert).toFixed(3)+ unitText +' and Zero the Z axis .<br>')
     }else if(isOutZmin){
-      $('#checkSizeText').append('Jog Z+ '+ (deltaZmin/unitConvert).toFixed(3)+ unitText +' and Zero the X axis .<br>')
+      $('#checkSizeText').append('Jog Z+ '+ (deltaZmin/unitConvert).toFixed(3)+ unitText +' and Zero the Z axis .<br>')
     }
 
 

@@ -1,3 +1,5 @@
+v1.1.1:   Change max file size to 80kb for gcode editor, added zero X, Y, Z, and
+          A keyboard shortcuts.  Fixed typos for check size
 v1.1.0:   Add a "Resume file" funtion to allow custom start point in a gcode file
 v1.0.2:   Fix flashing bug for KL7 and E series firmware.
 v1.0.0:   Add Revolution A axis to check size. Auto select Axis display based on firmware.

@@ -291,7 +291,7 @@ function loadFile(f) {
     // if (f.name.match(/.gcode$/i)) {
     r.readAsText(f);
     r.onload = function(event) {
-      if (this.result.length > (20 * 1024 * 1024)) {
+      if (this.result.length > (80 * 1024 * 1024)) {
         gcode = this.result
         editor.session.setValue("File " + f.name + " is too large (" + (this.result.length / 1024).toFixed(0) + "kB) to load into the GCODE Editor. \nIf you need to edit it inside CONTROL, please use a standalone text editing application and reload it ");
       } else {

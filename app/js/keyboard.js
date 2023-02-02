@@ -45,6 +45,20 @@ $(document).ready(function() {
       keyboardShortcuts.aP = "+"
     }
 
+    if (!keyboardShortcuts.zeroX) {
+      keyboardShortcuts.zeroX = "x"
+    }
+
+    if (!keyboardShortcuts.zeroY) {
+      keyboardShortcuts.zeroY = "y"
+    }
+
+    if (!keyboardShortcuts.zeroZ) {
+      keyboardShortcuts.zeroZ = "z"
+    }
+    if (!keyboardShortcuts.zeroA) {
+      keyboardShortcuts.zeroA = "a"
+    }
 
   } else {
     keyboardShortcuts = {
@@ -56,7 +70,10 @@ $(document).ready(function() {
       zM: "pagedown", //Z-
       aP: "+", //A+
       aM: "-", //A-
-
+      zeroX: "x",
+      zeroY: "y",
+      zeroZ: "z",
+      zeroA: "a",
       stepP: "1", // Increase Step Size
       stepM: "2", // Decrease Step Size
       estop: "esc", // Abort / Emergency
@@ -315,6 +332,32 @@ function bindKeys() {
         home();
       });
     }
+    // Start zero keys
+    if (keyboardShortcuts.zeroX.length) {
+      $(document).bind('keydown', keyboardShortcuts.zeroX, function(e) {
+        e.preventDefault();
+        sendGcode('G10 P0 L20 X0')
+      });
+    }
+    if (keyboardShortcuts.zeroY.length) {
+      $(document).bind('keydown', keyboardShortcuts.zeroY, function(e) {
+        e.preventDefault();
+        sendGcode('G10 P0 L20 Y0')
+      });
+    }
+    if (keyboardShortcuts.zeroZ.length) {
+      $(document).bind('keydown', keyboardShortcuts.zeroZ, function(e) {
+        e.preventDefault();
+        sendGcode('G10 P0 L20 Z0')
+      });
+    }
+    if (keyboardShortcuts.zeroA.length) {
+      $(document).bind('keydown', keyboardShortcuts.zeroA, function(e) {
+        e.preventDefault();
+        sendGcode('G10 P0 L20 A0')
+      });
+    }
+
     if (keyboardShortcuts.setzeroxyz.length) {
       $(document).bind('keydown', keyboardShortcuts.setzeroxyz, function(e) {
         e.preventDefault();
@@ -331,6 +374,7 @@ function bindKeys() {
         sendGcode('G0 Z0');
       });
     }
+    // End of zero keys
 
     if (keyboardShortcuts.incJogMode.length) {
       $(document).bind('keydown', keyboardShortcuts.incJogMode, function(e) {
@@ -440,6 +484,30 @@ function keyboardShortcutsEditor() {
           <input type="text" class="keyboardshortcutinput" readonly id="playPausenewKey" value="` + keyboardShortcuts.playpause + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#playPausenewKey').addClass('primary').addClass('newKeyAssignment')">
         </div>
       </div>
+        <div class="row mb-1 ml-1 mr-1">
+          <label class="cell-sm-6"><i class="fas fa-crosshairs fg-openbuilds fa-fw"></i> Setzero X</label>
+          <div class="cell-sm-6">
+            <input type="text" class="keyboardshortcutinput" readonly id="zeroXnewKey" value="` + keyboardShortcuts.zeroX + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#zeroXnewKey').addClass('primary').addClass('newKeyAssignment')">
+          </div>
+        </div>
+        <div class="row mb-1 ml-1 mr-1">
+          <label class="cell-sm-6"><i class="fas fa-crosshairs fg-openbuilds fa-fw"></i> Setzero Y</label>
+          <div class="cell-sm-6">
+            <input type="text" class="keyboardshortcutinput" readonly id="zeroYnewKey" value="` + keyboardShortcuts.zeroY + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#zeroYnewKey').addClass('primary').addClass('newKeyAssignment')">
+          </div>
+        </div>
+        <div class="row mb-1 ml-1 mr-1">
+          <label class="cell-sm-6"><i class="fas fa-crosshairs fg-openbuilds fa-fw"></i> Setzero Z</label>
+          <div class="cell-sm-6">
+            <input type="text" class="keyboardshortcutinput" readonly id="zeroZnewKey" value="` + keyboardShortcuts.zeroZ + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#zeroZnewKey').addClass('primary').addClass('newKeyAssignment')">
+          </div>
+        </div>
+        <div class="row mb-1 ml-1 mr-1">
+          <label class="cell-sm-6"><i class="fas fa-crosshairs fg-openbuilds fa-fw"></i> Setzero A</label>
+          <div class="cell-sm-6">
+            <input type="text" class="keyboardshortcutinput" readonly id="zeroZnewKey" value="` + keyboardShortcuts.zeroA + `" onclick="$('.keyboardshortcutinput').removeClass('primary').removeClass('newKeyAssignment'); $('#zeroAnewKey').addClass('primary').addClass('newKeyAssignment')">
+          </div>
+        </div>
       <div class="row mb-1 ml-1 mr-1">
         <label class="cell-sm-6"><i class="fas fa-crosshairs fg-openbuilds fa-fw"></i> Setzero XYZ</label>
         <div class="cell-sm-6">
