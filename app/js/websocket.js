@@ -165,13 +165,6 @@ function initSocket() {
     jobNeedsHoming();
   });
 
- // socket.on('gcodeupload', function(data) {
- //   var icon = ''
- //   var source = "api"
- //   var string = "API called window into focus"
- //   var printLogCls = "fg-darkGreen"
- //   printLogModern(icon, source, string, printLogCls)
- // });
 
   socket.on('integrationpopup', function(data) {
     var icon = ''
@@ -454,10 +447,11 @@ function initSocket() {
     if (string) {
       if (string.indexOf('flash complete') != -1) {
         setTimeout(function() {
-          if(data.filename.indexOf('eepromclear.hex')!= -1){
-          printLogModern("", "Clearing EEPROM", "Please wait...", "fg-dark")
-          }
-          populatePortsMenu();
+            if(data.filename.indexOf('eepromclear.hex')!= -1){
+            printLogModern("", "Clearing EEPROM", "Please wait...", "fg-dark")
+            }else{
+            populatePortsMenu();
+            }
         }, 400)
       }
       string = string.replace('[31mflash complete.[39m', "<span class='fg-darkRed'><i class='fas fa-times fa-fw fg-darkRed fa-fw'> </i> FLASH FAILED!</span> ");
@@ -477,7 +471,7 @@ function initSocket() {
       }
 
       if (string.indexOf("A fatal error occurred: Failed to connect to ESP32: Timed out waiting for packet header") != -1) {
-        string = "<span class='fg-darkRed'>" + string + ":  Make sure the Interface is in BOOTLOADER MODE. See https://docs.openbuilds.com/doku.php?id=docs:interface:firmware-update-control"
+        string = "<span class='fg-darkRed'>" + string + ":  Make sure the device is in BOOTLOADER MODE. Your computer failed to put it into Bootloader mode automatically. You can enter bootloader mode by: Press and hold down MODE, the Press RESET while still holding MODE. Let go of RESET, then wait a second or two and let go of MODE.  Best performed right after starting the Firmware Flashing operation."
       }
 
 
@@ -499,7 +493,7 @@ function initSocket() {
         var icon = ''
         var source = " Flashing Firmware"
         if (data.code == 0) {
-          var string = "<i class='fas fa-check fa-fw fg-darkGreen fa-fw'></i> <b>Firmware Update COMPLETED!</b>  Please click the Reset button on the Interface now, to reboot it with the new firmware. "
+          var string = "<i class='fas fa-check fa-fw fg-darkGreen fa-fw'></i> <b>Firmware Update COMPLETED!</b>  Please click the Reset button on the device now, to reboot it with the new firmware. "
           var printLogCls = "fg-darkGreen"
         } else {
           var string = "<i class='fas fa-times fa-fw fg-darkRed fa-fw'></i> <b>Firmware Update FAILED!</b>  Please review the logs above, or try again"

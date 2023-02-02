@@ -125,12 +125,6 @@ function startFlash(){
   
     socket.emit('flashGrbl', data)
 
-    
-    setTimeout(function() {
-      closePort(); // load firmware
-    }, 2000);
-  
-
   setTimeout(function() {
     installFirmware(); // load firmware
   }, 10000);
