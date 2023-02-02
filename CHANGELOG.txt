@@ -1,3 +1,5 @@
+v1.1.0:   Add a "Resume file" funtion to allow custom start point in a gcode file
+v1.0.2:   Fix flashing bug for KL7 and E series firmware.
 v1.0.0:   Add Revolution A axis to check size. Auto select Axis display based on firmware.
 v.0.0.83: Change 'Check Size' button to show the gcode position relation to the cutting area.
 v.0.0.82: Added dark/light theme, updated Rasp Pi config., updating to recent openbuilds version,

@@ -599,25 +599,111 @@ function softlimits(){
   }
 }
 
+function startFromHere(lineNumber){
+  var lineX = "";
+  var lineY = "";
+  var lineZ = "";
+  var lineA = "";
+  var lineZm = "";
+  var lineF = "";
+  var lineFmin = 0;
+  var lineFmax = 0;
+  var line = ''
+  
+  var foundZUp=false;
+  var foundZUpLine=0;
 
+  
 
+  for (var i = 1; i < lineNumber; i++) {
 
-function startFromHere(){
-  var LineNumber = 0
-  var GcodeLine = ''
+      currentLine = editor.session.getLine(i);
+      if (currentLine.length>0) {
+        currentLine = currentLine.split(';'); // Remove everything after ; = comment
+        line=currentLine[0]
+        line=line.toUpperCase();
 
-  if (localStorage.getItem('gcodeLineNumber')){
-    LineNumber=localStorage.getItem('gcodeLineNumber')
-  }
-  GcodeLine = editor.session.getLine(LineNumber);
-  if (GcodeLine) {
-    GcodeLine = GcodeLine.split('\n');
-    for (var i = 0; i < GcodeLine.length; i++) {
-      var line = GcodeLine[i].replace("%", "").split(';'); // Remove everything after ; = comment
-      line = line[0].trim();
-      if (line.length > 0) {
-        bob=line.match(/z/gi)
+        var Xindex = line.indexOf("X")
+        var Yindex = line.indexOf("Y")
+        var Zindex = line.indexOf("Z")
+        var Aindex = line.indexOf("A")
+        var Zmindex = line.indexOf("Z-")
+        var Findex = line.indexOf("F")
+
+        if(Zindex >= 0  && !foundZUp){
+          lineZ = line.slice(Zindex+1)
+          lineZ = "G0 Z" + parseFloat(lineZ)
+          foundZUp=true
+          foundZUpLine=i+1;
+        }
+
+        if(Xindex >= 0){
+          lineX = line.slice(Xindex+1)
+          lineX = "X" + parseFloat(lineX)
+        }
+        if(Yindex >= 0){
+          lineY = line.slice(Yindex+1)
+          lineY = "Y" + parseFloat(lineY)
+        }
+        if(Zmindex >= 0){
+          lineZm = line.slice(Zmindex+1)
+          lineZm = "Z" + parseFloat(lineZm)
+        }
+        if(Aindex >= 0){
+          lineA = line.slice(Aindex+1)
+          lineA = "A" + parseFloat(lineA)
+        }
+        if(Findex >= 0){
+          lineF = line.slice(Findex+1)
+          lineF = parseFloat(lineF)
+
+          if(lineF>0 && lineF >= lineFmin){
+            lineFmin = 'F'+lineF
+          }else{
+            lineFmax = 'F'+lineF
+          }
+        }
       }
-    }
   }
-}
+ 
+  var GcodeLineXYA = "G1"+lineX + lineY + lineA + lineFmax
+  var GcodeLineZDown = "G1" + lineZm + lineFmin
+
+  $('#resumeZUpLine').html(foundZUpLine);
+  $('#resumeZUp').html(lineZ);
+  $('#resumeLastLine').html(lineNumber);
+  $('#resumeXYA').html(GcodeLineXYA);
+  $('#resumeZm').html(GcodeLineZDown);
+
+  Metro.dialog.open("#ResumeFileDialog");
+  }
+
+  function redoJob(){
+    var line="";
+    gcode="";
+
+    var startLineNumber = $('#resumeZUpLine').html();
+    var XYAGcode = $('#resumeXYA').html();
+    var ZGcode = $('#resumeZm').html();
+    var resumeLineNumber = $('#resumeLastLine').html();
+    var resumeLastNumber=editor.session.getLength();
+    
+    
+    for (var i = 0; i < startLineNumber ; i++) {
+      line= editor.session.getLine(i);
+      gcode+= line +'\n'
+      }
+
+    gcode+= XYAGcode + '\n';
+    gcode+= ZGcode + '\n';
+
+    for (var i = resumeLineNumber-1; i < resumeLastNumber ; i++) {
+      line= editor.session.getLine(i);
+      gcode+= line +'\n'
+    }
+ 
+    editor.session.setValue("");
+    editor.session.setValue(gcode);
+    $('#controlTab').click();
+     parseGcodeInWebWorker(gcode);
+  }

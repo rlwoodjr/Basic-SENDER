@@ -482,6 +482,16 @@
               </div>
 
               <div class="group">
+                <button class="ribbon-button" id="RecoverFile">
+                  <span class="icon">
+                    <i class="fas fa-route"></i>
+                  </span>
+                  <span class="caption">Resume<br>File</span>
+                </button>
+              <span class="title">Recovery</span>
+              </div>
+
+              <div class="group">
                 <button class="ribbon-button" onclick="ConfirmDelete();">
                   <span class="icon">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -1564,12 +1574,27 @@
         </div>
       </div>
 
-
-
-
-
-
-
+      <div class="dialog dark" data-role="dialog" id="ResumeFileDialog" data-width="50%" data-actions-align="right" data-overlay-click-close="false">
+        <div class="dialog-title"><i class="fas fa-route"></i> Resume File</div>
+        <div class="dialog-content" style="max-height: calc(100vh - 100px);overflow-y: auto; overflow-x: hidden;">
+          <form>
+            <div>
+                <strong>The Recovery will use the current file and:</strong><br><hr>
+                - Run gcode lines to line: <label id="resumeZUpLine" ></label><br>
+                - Raise the Z with the gcode: <label id="resumeZUp" ></label><br>
+                - Move to position with the gcode: <label id="resumeXYA" ></label><br>
+                - Move to the cutting height with the gcode: <label id="resumeZm" ></label><br>
+                - Run gcode starting at line <label id="resumeLastLine" ></label><br><hr>
+                <strong>Please confirm these gcode commands and click 'Proceed'</strong><br>
+                <strong>to view and run the updated gcode file.</strong>
+            </div>
+          </form>
+        </div>
+        <div class="dialog-actions">
+          <button class="button success js-dialog-close" onclick="redoJob();">Proceed</button>
+          <button class="button js-dialog-close">Cancel</button>
+        </div>
+      </div>
 
       <div class="dialog dark" id="downloadUpdate" data-role="dialog" data-overlay-click-close="false" data-to-top="true">
         <div class="dialog-title">Update Ready</div>
