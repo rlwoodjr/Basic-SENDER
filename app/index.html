@@ -126,20 +126,29 @@
                 <span class="title">Machine Interface</span>
               </div>
 
-              <div class="group" style:="width:150px">
-                <div>
-                  <button class="ribbon-button btn-file" title="Open a GCODE file">
-                  <input  id="file" type="file" accept=".gcode, .ngc, .tap, .nc, .cnc" />
-                    <span class="icon">
-                      <span class="far fa-folder-open fg-amber"></span>
-                    </span>
-                    <span class="caption">Open<br>GCODE</span>
-                  </button>
-                   
-                    
-                </div>
-                <span class="title">File</span>
-              </div>
+          <div class="group" style="width: 120px;">
+            <div>
+              <button id="openGcodeBtn" class="ribbon-button btn-file" title="Open a GCODE file">
+              <input   type="file" accept=".gcode, .ngc, .tap, .nc, .cnc" />
+                <span class="icon">
+                  <span class="far fa-folder-open fg-amber"></span>
+                </span>
+                <span class="caption">Open<br>GCODE</span>
+              </button>
+            </div>
+
+            <div>
+              <button id="openGcodeBtnElectron19"  onclick="socket.emit('openFile')" class="ribbon-button" title="Open a GCODE file">
+                <span class="icon">
+                  <span class="far fa-folder-open fg-amber"></span>
+                </span>
+                <span class="caption">Open<br>GCODE</span>
+              </button>
+
+            </div>
+
+            <span class="title">File</span>
+          </div>
 
 
             <div class="group" id="controlBtnGrp">

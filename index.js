@@ -650,7 +650,8 @@ io.on("connection", function(socket) {
 
   socket.on("openFile", function(data) {
     dialog.showOpenDialog(jogWindow, {
-      properties: ['openFile']
+      properties: ['openFile'],
+      filters:[{ name: 'Gcode Files: ', extensions: ['gcode','nc','ngc','tap','cnc'] }]
     }).then(result => {
       console.log(result.canceled)
       console.log(result.filePaths)
