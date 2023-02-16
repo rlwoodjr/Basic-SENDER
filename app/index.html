@@ -491,7 +491,7 @@
               </div>
 
               <div class="group">
-                <button class="ribbon-button" id="RecoverFile">
+                <button class="ribbon-button" onclick="recoverCrashedJob();">
                   <span class="icon">
                     <i class="fas fa-route"></i>
                   </span>
@@ -1295,9 +1295,10 @@
     <!-- Simulator Context Menu -->
     <ul class="d-menu context" id="editorContextMenu" data-role="dropdown" data-toggle-element="#context_toggle">
       <span id="dropdowncontent">
-        <li onclick="runSimFrom(editor.getSelectionRange().start.row + 1, false);"><a href="#"><i class="fas fa-fighter-jet icon"></i> Simulate from line <span class="linenumber"></span></a>
-        <li onclick="runSimFrom(editor.getSelectionRange().start.row + 1, true);"><a href="#"><i class="fas fa-fighter-jet icon"></i> Simulate only line <span class="linenumber"></span></a>
-        </li>
+        <li onclick="startFromHere(editor.getSelectionRange().start.row + 1);"><a href="#"><i class='fas fa-fw fa-route icon'></i> Recover job from Line: <span class="linenumber"></span></a></li>
+        <li class="divider"></li>
+        <li onclick="runSimFrom(editor.getSelectionRange().start.row + 1, false);"><a href="#"><i class="fas fa-fighter-jet icon"></i> Simulate from line <span class="linenumber"></span></a></li>
+       </li>
       </span>
     </ul>
     <!--  -->
@@ -1583,27 +1584,7 @@
         </div>
       </div>
 
-      <div class="dialog dark" data-role="dialog" id="ResumeFileDialog" data-width="50%" data-actions-align="right" data-overlay-click-close="false">
-        <div class="dialog-title"><i class="fas fa-route"></i> Resume File</div>
-        <div class="dialog-content" style="max-height: calc(100vh - 100px);overflow-y: auto; overflow-x: hidden;">
-          <form>
-            <div>
-                <strong>The Recovery will use the current file and:</strong><br><hr>
-                - Run gcode lines to line: <label id="resumeZUpLine" ></label><br>
-                - Raise the Z with the gcode: <label id="resumeZUp" ></label><br>
-                - Move to position with the gcode: <label id="resumeXYA" ></label><br>
-                - Move to the cutting height with the gcode: <label id="resumeZm" ></label><br>
-                - Run gcode starting at line <label id="resumeLastLine" ></label><br><hr>
-                <strong>Please confirm these gcode commands and click 'Proceed'</strong><br>
-                <strong>to view and run the updated gcode file.</strong>
-            </div>
-          </form>
-        </div>
-        <div class="dialog-actions">
-          <button class="button success js-dialog-close" onclick="redoJob();">Proceed</button>
-          <button class="button js-dialog-close">Cancel</button>
-        </div>
-      </div>
+
 
       <div class="dialog dark" id="downloadUpdate" data-role="dialog" data-overlay-click-close="false" data-to-top="true">
         <div class="dialog-title">Update Ready</div>
@@ -2000,6 +1981,8 @@
 
   
   <script type="text/javascript" src="wizards/jobstats/jobstats.js"></script>
+
+  <script type="text/javascript" src="wizards/resume/resume.js"></script>
 
   <script type="text/javascript" src="js/toolchange.js"></script>
 

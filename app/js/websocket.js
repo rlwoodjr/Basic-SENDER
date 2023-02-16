@@ -954,31 +954,7 @@ function initSocket() {
     $("#FlashDialogMsg").html(template);
   })*/
 
-  $('#RecoverFile').on('click', function() {
-    if (localStorage.getItem('gcodeLineNumber')){
-      var lineNumber=localStorage.getItem('gcodeLineNumber')
-    }
 
-    Metro.dialog.create({
-      title: "Resume From Line Number",
-      content: "<div> The last line number ran from the prevous file is " + lineNumber + ".</div><input id=\"selectedLineNumber\" type=\"number\" data-role=\"input\"  data-clear-button=\"false\" value=\""+ lineNumber+ "\" data-editable=\"true\"</input><div> Use this value or enter the line number to set the line number to resume the file.</div> ",
-      clsDialog: 'dark',
-      actions: [{
-          caption: "Proceed",
-          cls: "js-dialog-close success",
-          onclick: function() {
-          startFromHere($("#selectedLineNumber").val());
-          }
-        },
-        {
-          caption: "Cancel",
-          cls: "js-dialog-close",
-          onclick: function() {
-          }
-        }
-      ]
-    });
-  });
 
   $('#sendCommand').on('click', function() {
     var commandValue = $('#command').val();
