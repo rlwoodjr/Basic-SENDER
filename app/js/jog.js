@@ -510,7 +510,7 @@ $(document).ready(function() {
     if (allowContinuousJog) { // startJog();
       if (!waitingForStatus && laststatus.comms.runStatus == "Idle" || laststatus.comms.runStatus == "Door:0") {
         var direction = "X-";
-        var distance = 1000;
+        var distance = 3000;
 
         if (hasSoftLimits) {
           // Soft Limits is enabled so lets calculate maximum move distance
@@ -561,7 +561,7 @@ $(document).ready(function() {
     if (allowContinuousJog) { // startJog();
       if (!waitingForStatus && laststatus.comms.runStatus == "Idle" || laststatus.comms.runStatus == "Door:0") {
         var direction = "X";
-        var distance = 1000;
+        var distance = 3000;
         if (hasSoftLimits) {
           // Soft Limits is enabled so lets calculate maximum move distance
           var maxdistance = parseInt(grblParams.$130)
@@ -609,7 +609,7 @@ $(document).ready(function() {
     if (allowContinuousJog) { // startJog();
       if (!waitingForStatus && laststatus.comms.runStatus == "Idle" || laststatus.comms.runStatus == "Door:0") {
         var direction = "Y-";
-        var distance = 1000;
+        var distance = 3000;
 
         if (hasSoftLimits) {
           // Soft Limits is enabled so lets calculate maximum move distance
@@ -658,7 +658,7 @@ $(document).ready(function() {
     if (allowContinuousJog) { // startJog();
       if (!waitingForStatus && laststatus.comms.runStatus == "Idle" || laststatus.comms.runStatus == "Door:0") {
         var direction = "Y";
-        var distance = 1000;
+        var distance = 3000;
 
         if (hasSoftLimits) {
           // Soft Limits is enabled so lets calculate maximum move distance
@@ -707,7 +707,7 @@ $(document).ready(function() {
     if (allowContinuousJog) { // startJog();
       if (!waitingForStatus && laststatus.comms.runStatus == "Idle" || laststatus.comms.runStatus == "Door:0") {
         var direction = "Z-";
-        var distance = 1000;
+        var distance = 3000;
 
         if (hasSoftLimits) {
           // Soft Limits is enabled so lets calculate maximum move distance
@@ -757,7 +757,7 @@ $(document).ready(function() {
     if (allowContinuousJog) { // startJog();
       if (!waitingForStatus && laststatus.comms.runStatus == "Idle" || laststatus.comms.runStatus == "Door:0") {
         var direction = "Z";
-        var distance = 1000;
+        var distance = 3000;
 
         if (hasSoftLimits) {
           // Soft Limits is enabled so lets calculate maximum move distance
@@ -847,7 +847,7 @@ $('.aM').on('touchend mouseup', function(ev) {
     if (allowContinuousJog) { // startJog();
       if (!waitingForStatus && laststatus.comms.runStatus == "Idle" || laststatus.comms.runStatus == "Door:0") {
         var direction = "A-";
-        var distance = 1000;
+        var distance = 3000;
 
         if (hasSoftLimits) {
           // Soft Limits is enabled so lets calculate maximum move distance
@@ -897,7 +897,7 @@ $('.aM').on('touchend mouseup', function(ev) {
     if (allowContinuousJog) { // startJog();
       if (!waitingForStatus && laststatus.comms.runStatus == "Idle" || laststatus.comms.runStatus == "Door:0") {
         var direction = "A";
-        var distance = 1000;
+        var distance = 3000;
 
         if (hasSoftLimits) {
           // Soft Limits is enabled so lets calculate maximum move distance
