@@ -32,11 +32,12 @@ jobs:
           echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
 
       - name: Electron Builder Action
-        uses: samuelmeuli/action-electron-builder@v1.6.0
+        uses: OpenBuilds/action-electron-build@v1.9.0
         with:
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
           github_token: ${{ secrets.github_token }}
+          debugElectron: true
           mac_certs: ${{ secrets.MAC_CERTS }}
           mac_certs_password: ${{ secrets.MAC_CERTS_PASSWORD }}
           args: "-p always"
@@ -46,6 +47,7 @@ jobs:
           release: ${{ startsWith(github.ref, 'refs/tags/v') }}
 
         env:
+          DEBUG: electron-builder # To debug electron-builder
           # macOS notarization API key
           API_KEY_ID: ${{ secrets.API_KEY_ID }}
           API_KEY_ISSUER_ID: ${{ secrets.API_KEY_ISSUER_ID }}
