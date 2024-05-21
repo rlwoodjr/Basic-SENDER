@@ -1,6 +1,6 @@
 {
   "name": "bobscnc-basic-sender",
-  "version": "1.1.16",
+  "version": "1.1.17",
   "license": "AGPL-3.0",
   "description": "Basic SENDER - CNC Machine Interface Software",
   "author": "github.com/rlwoodjr <bob@bobscnc.com>",
@@ -55,7 +55,7 @@
         "vPrefixedTagName": true
       }
     ],
-    "afterSign": "./notarize.js",
+    "afterSign": "electron-builder-notarize",
     "mac": {
       "icon": "build/sender.icns",
       "category": "public.app-category.graphics-design",
