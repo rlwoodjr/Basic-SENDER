@@ -121,7 +121,7 @@ function initSocket() {
   printLogModern(icon, source, string, printLogCls)
   setTimeout(function() {
     populatePortsMenu();
-    populateDrivesMenu();
+
   }, 2000);
 
   socket.on('disconnect', function() {
@@ -447,11 +447,7 @@ function initSocket() {
     if (string) {
       if (string.indexOf('flash complete') != -1) {
         setTimeout(function() {
-            if(data.filename.indexOf('eepromclear.hex')!= -1){
-            printLogModern("", "Clearing EEPROM", "Please wait...", "fg-dark")
-            }else{
-            populatePortsMenu();
-            }
+        populatePortsMenu();
         }, 400)
       }
       string = string.replace('[31mflash complete.[39m', "<span class='fg-darkRed'><i class='fas fa-times fa-fw fg-darkRed fa-fw'> </i> FLASH FAILED!</span> ");
@@ -476,12 +472,8 @@ function initSocket() {
 
 
       var icon = ''
-     
-      if(data.filename.indexOf('eepromclear.hex')!= -1){
-        var source = " Erasing Firmware"
-      }else{
-        var source = " Installing Firmware" 
-      }
+      var source = " Installing Firmware" 
+      
 
      
          
@@ -575,7 +567,6 @@ function initSocket() {
         var printLogCls = "fg-dark"
         printLogModern(icon, source, string, printLogCls)
         laststatus.interface.diskdrives = status.interface.diskdrives;
-        populateDrivesMenu();
       }
 
     }
@@ -1089,39 +1080,6 @@ function closePort() {
   $('#consoletab').click();
 }
 
-function populateDrivesMenu() {
-  if (laststatus) {
-    var response = `<select id="select1" data-role="select" class="mt-4"><optgroup label="USB Flashdrives">`
-
-    var usbDrives = []
-
-    for (i = 0; i < laststatus.interface.diskdrives.length; i++) {
-      if (laststatus.interface.diskdrives[i].isUSB || !laststatus.interface.diskdrives[i].isSystem) {
-        usbDrives.push(laststatus.interface.diskdrives[i])
-      }
-    };
-
-    if (!usbDrives.length > 0) {
-      response += `<option value="">Waiting for USB Flashdrive</option>`
-    } else {
-      for (i = 0; i < usbDrives.length; i++) {
-        response += `<option value="` + usbDrives[i].mountpoints[0].path + `">` + usbDrives[i].mountpoints[0].path + ` ` + usbDrives[i].description + `</option>`;
-      };
-    }
-    response += `</optgroup></select>`
-    var select = $("#UsbDriveList").data("select");
-    if (select) {
-      select.data(response);
-      if (!usbDrives.length > 0) {
-        $('#UsbDriveList').parent(".select").addClass('disabled')
-        $("#copyToUsbBtn").attr('disabled', true);
-      } else {
-        $('#UsbDriveList').parent(".select").removeClass('disabled')
-        $("#copyToUsbBtn").attr('disabled', false);
-      }
-    }
-  }
-}
 
 function populatePortsMenu() {
   if (laststatus) {
@@ -1274,4 +1232,3 @@ function msToTime(duration) {
 
   return hours + "h" + minutes + "m";
 }
-

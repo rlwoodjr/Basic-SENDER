@@ -75,16 +75,9 @@ app.post('/uploadCustomFirmware', (req, res) => {
 // end Interface Firmware flash
 
 
-//Note when renewing Convert zerossl cert first `openssl.exe rsa -in domain-key.key -out domain-key.key`
-// fix error:    App threw an error during load
-//               Error: error:06000066:public key routines:OPENSSL_internal:DECODE_ERROR
 
-var httpsOptions = {
-  key: fs.readFileSync(path.join(__dirname, 'privkey1.pem')),
-  cert: fs.readFileSync(path.join(__dirname, 'fullchain1.pem'))
-};
 
-const httpsserver = https.createServer(httpsOptions, app).listen(3001, function() {
+const httpsserver = https.createServer(app).listen(3001, function() {
   debug_log('https: listening on:' + ip.address() + ":3001");
 });
 

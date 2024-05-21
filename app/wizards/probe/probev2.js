@@ -1,23 +1,17 @@
 
-var zprobeplate = {
-  xoffset: 0,
-  yoffset: 0,
-  zoffset: 20,
-  xyzmode: false,
-  name: "Z Touch Plate",
+var probedata = {
+  xoffset: 0.5,  // XYZ plate
+  yoffset: 0.5,
+  zoffset: 0.25,
+  zthickness: 0.75,  // Zplate
+  units: "inch"
 }
 
-var customprobeplate = {
-  xoffset: 6,
-  yoffset: 6,
-  zoffset: 8,
-  xyzmode: true,
-  name: "XYZ Touch Plate",
-}
+var unitcovert = 1;
 
 var probemode = {
   mode: "xyz", // auto, xyz, xzero, yzero, zzero, zplate, endmilldia
-  endmilldia: 0,
+  endmilldia: 0.25,
   stock: {
     x: 0,
     y: 0,
@@ -27,37 +21,33 @@ var probemode = {
 }
 
 $(document).ready(function() {
-  if (localStorage.getItem('probeType')) {
-    if (localStorage.getItem('probeType') == "z") {
-      $(".needsXYZProbe").hide()
-    } else {
-      // console.log("Enabling XYZ Probing")
-      $(".needsXYZProbe").show()
-    }
+ 
+  if (localStorage.getItem('customProbe')) {
+    probedata = (JSON.parse(localStorage.getItem('customProbe')))
+  }
+  if (localStorage.getItem('endmilldiameter')) {
+    probemode.endmilldia = localStorage.getItem('endmilldiameter')
   }
 
-  if (localStorage.getItem('z0platethickness')) {
-    zprobeplate.zoffset = localStorage.getItem('z0platethickness')
-  }
+  changeProbeUnits()
+  
 });
-
-if (localStorage.getItem('customProbe')) {
-  customprobeplate = (JSON.parse(localStorage.getItem('customProbe')))
-}
 
 $("#z0platethickness").keyup(function() {
-  localStorage.setItem('z0platethickness', $("#z0platethickness").val())
-  zprobeplate.zoffset = $("#z0platethickness").val()
+    probedata.zthickness = parseFloat($("#z0platethickness").val()),
+    localStorage.setItem('customProbe', JSON.stringify(probedata));
+});
+
+$("#probediameterxyz").keyup(function() {
+  probemode.endmilldia = parseFloat($("#probediameterxyz").val()),
+  localStorage.setItem('endmilldiameter', probemode.endmilldia);
 });
 
 
-// still beta, lets hide it from users
-// if (!enableBetaFeatures) {
-//   $(".needsXYZProbe").hide();
-// }
 
 function openProbeDialog() {
   Metro.dialog.open("#xyzProbeWindow");
+  $("#probediameterxyz").val(probemode.endmilldia)
   if (localStorage.getItem('probeType')) {
     probetype(localStorage.getItem('probeType'))
     if (localStorage.getItem('probeType') == "z") { // Z Touchplate
@@ -85,80 +75,29 @@ function openProbeDialog() {
 
 function openProbeXDialog() {
   Metro.dialog.open("#xyzProbeWindow");
-  if (localStorage.getItem('probeType')) {
-    probetype(localStorage.getItem('probeType'))
-    if (localStorage.getItem('probeType') == "z") {
-      // setTimeout(function() {
-      //   probezplatetab()
-      //   $(".probetabxyz").removeClass("active")
-      //   $("#probezplatetab").addClass("active")
-      // }, 100)
-    } else {
-      setTimeout(function() {
-        probextab()
-        $(".probetabxyz").removeClass("active")
-        $("#probextab").addClass("active")
-      }, 100)
-    }
-  } else {
-    setTimeout(function() {
-      probextab()
-      $(".probetabxyz").removeClass("active")
-      $("#probextab").addClass("active")
-    }, 100)
-  }
+  setTimeout(function() {
+    probextab()
+    $(".probetabxyz").removeClass("active")
+    $("#probextab").addClass("active")
+  }, 100)
 }
 
 function openProbeYDialog() {
   Metro.dialog.open("#xyzProbeWindow");
-  if (localStorage.getItem('probeType')) {
-    probetype(localStorage.getItem('probeType'))
-    if (localStorage.getItem('probeType') == "z") {
-      // setTimeout(function() {
-      //   probezplatetab()
-      //   $(".probetabxyz").removeClass("active")
-      //   $("#probezplatetab").addClass("active")
-      // }, 100)
-    } else {
-      setTimeout(function() {
-        probeytab()
-        $(".probetabxyz").removeClass("active")
-        $("#probeytab").addClass("active")
-      }, 100)
-    }
-  } else {
-    setTimeout(function() {
-      probeytab()
-      $(".probetabxyz").removeClass("active")
-      $("#probeytab").addClass("active")
-    }, 100)
-  }
+  setTimeout(function() {
+    probeytab()
+    $(".probetabxyz").removeClass("active")
+    $("#probeytab").addClass("active")
+  }, 100)
 }
 
 function openProbeZDialog() {
   Metro.dialog.open("#xyzProbeWindow");
-  if (localStorage.getItem('probeType')) {
-    probetype(localStorage.getItem('probeType'))
-    if (localStorage.getItem('probeType') == "z") {
-      setTimeout(function() {
-        probezplatetab()
-        $(".probetabxyz").removeClass("active")
-        $("#probezplatetab").addClass("active")
-      }, 100)
-    } else {
-      setTimeout(function() {
-        probeztab()
-        $(".probetabxyz").removeClass("active")
-        $("#probeztab").addClass("active")
-      }, 100)
-    }
-  } else {
     setTimeout(function() {
-      probeztab()
-      $(".probetabxyz").removeClass("active")
-      $("#probeztab").addClass("active")
-    }, 100)
-  }
+    probeztab()
+    $(".probetabxyz").removeClass("active")
+    $("#probeztab").addClass("active")
+  }, 100)
 }
 
 
@@ -173,13 +112,15 @@ function probexyztab() {
   $("#img-probe-xyz").show();
   $("#toggle-probe-advanced").show();
   $("#endmilldiameterform").show();
-  $("#toggle-probe-advanced-content").data('collapse').expand()
   $('#runNewProbeBtn').addClass("disabled")
   $('#confirmNewProbeBtn').removeClass("disabled")
   $('#jogTypeContinuous').prop('checked', true)
   allowContinuousJog = true;
   $('.probetabxyz').removeClass('active');
   $('#probexyztab').addClass('active');
+  $("#editCustomProbeBtn").show()
+  $("#ProbeButtonBarSpacer").hide()
+  $("#probeUnitsButton").text(probedata.units)
 }
 
 function probextab() {
@@ -193,11 +134,11 @@ function probextab() {
   $("#img-probe-x").show();
   $("#toggle-probe-advanced").show();
   $("#endmilldiameterform").show();
-  $("#toggle-probe-advanced-content").data('collapse').expand()
   $('#runNewProbeBtn').addClass("disabled")
   $('#confirmNewProbeBtn').removeClass("disabled")
   $('#jogTypeContinuous').prop('checked', true)
   allowContinuousJog = true;
+  $("#probeUnitsButton").text(probedata.units)
 }
 
 function probeytab() {
@@ -214,6 +155,7 @@ function probeytab() {
   $('#confirmNewProbeBtn').removeClass("disabled")
   $('#jogTypeContinuous').prop('checked', true)
   allowContinuousJog = true;
+  $("#probeUnitsButton").text(probedata.units)
 }
 
 function probeztab() {
@@ -231,6 +173,7 @@ function probeztab() {
   $('#confirmNewProbeBtn').removeClass("disabled")
   $('#jogTypeContinuous').prop('checked', true)
   allowContinuousJog = true;
+  $("#probeUnitsButton").text(probedata.units)
 }
 
 function probezplatetab() {
@@ -248,11 +191,11 @@ function probezplatetab() {
   $('#confirmNewProbeBtn').removeClass("disabled")
   $('#jogTypeContinuous').prop('checked', true)
   allowContinuousJog = true;
-  $('#z0platethickness').val(zprobeplate.zoffset)
+  $('#z0platethickness').val(probedata.zthickness)
   $('.probetabxyz').removeClass('active');
   $('#probezplatetab').addClass('active');
-  $("#toggle-probe-advanced-content").data('collapse').expand()
- 
+  $("#probeUnitsButton").text(probedata.units)
+
 }
 
 
@@ -294,8 +237,6 @@ $("#probe-c, #probe-c-text").on("click", function() {
 function probetype(type) {
   localStorage.setItem('probeType', type);
   if (type == "z") {
-    $(".needsXYZProbe").hide()
-    probemode.probe = zprobeplate // customprobeplate, zprobeplate
     var template = `<span class="icon"><img src="/img/xyzprobe/ztouch.png"/></span>Z Touch Plate`;
     $("#probetypebtn").html(template)
     $(".probetabxyz").hide();
@@ -305,8 +246,6 @@ function probetype(type) {
     probezplatetab()
 
   } else if (type == "custom") {
-    $(".needsXYZProbe").show()
-    probemode.probe = customprobeplate // customprobeplate, zprobeplate
     var template = `<span class="icon"><img src="/img/xyzprobe/custom.png"/></span> XYZ Touch Plate`;
     $("#probetypebtn").html(template)
     $(".probetabz").hide();
@@ -318,7 +257,7 @@ function probetype(type) {
   }
 }
 
-function confirmProbeInPlace(operation) {
+function confirmProbeInPlace() {
   $('#confirmNewProbeBtn').addClass("disabled")
   $('#runNewProbeBtn').removeClass("disabled").focus();
 }
@@ -342,18 +281,25 @@ function resetJogModeAfterProbe() {
 function runProbeNew() {
   resetJogModeAfterProbe()
   $("#consoletab").click()
+
+  var moveZ = 25
+  if ( grblParams.$132 !== undefined) {
+       var moveZ = -laststatus.machine.position.work.z -laststatus.machine.position.offset.z - parseFloat(grblParams.$132)+2
+  }
+
+
+
+
   probemode.stock.y = $("#stockwidth").val();
   probemode.stock.x = $("#stocklength").val();
 
   template = `Code todo: run: \n`
   template += `Mode: ` + probemode.mode + `\n`
-  template += `Probe: ` + probemode.probe.name + `\n`
-  template += `Probe: X:` + probemode.probe.xoffset + `\n`
-  template += `Probe: Y:` + probemode.probe.yoffset + `\n`
-  template += `Probe: Z:` + probemode.probe.zoffset + `\n`
+  template += `Probe: X:` + probedata.xoffset + `\n`
+  template += `Probe: Y:` + probedata.yoffset + `\n`
+  template += `Probe: Z:` + probedata.zoffset + `\n`
 
   if (probemode.mode == "xyz" || probemode.mode == "xzero" || probemode.mode == "yzero" || probemode.mode == "zzero") {
-    probemode.endmilldia = parseFloat($("#probediameterxyz").val());
     template += `Endmill: ` + probemode.endmilldia + `mm\n`
   }
 
@@ -414,8 +360,8 @@ function runProbeNew() {
     ; Probe X
     G38.2 X25 F100 ; Probe X
     G4 P0.4
-    G10 P0 L20 X` + xoffset + ` ; set X as offset and half endmill diameter
-    G0 X` + (xoffset - 2).toFixed(3) + `
+    G10 P0 L20 X` + xoffset*unitcovert + ` ; set X as offset and half endmill diameter
+    G0 X` + (xoffset*unitcovert - 2).toFixed(3) + `
     `
 
 
@@ -439,8 +385,8 @@ function runProbeNew() {
 
     G38.2 Y25 F100 ; probe Y
     G4 P0.4
-    G10 P0 L20 Y` + yoffset + ` ; set Y as offset and half endmill diameter
-    G0 Y` + (yoffset - 2).toFixed(3) + `
+    G10 P0 L20 Y` + yoffset*unitcovert + ` ; set Y as offset and half endmill diameter
+    G0 Y` + (yoffset*unitcovert - 2).toFixed(3) + `
     `
     socket.emit('runJob', {
       data: ymacro,
@@ -461,9 +407,9 @@ function runProbeNew() {
     G10 P0 L20 Z0 ; zero out current location
 
     ; Probe Z
-    G38.2 Z-25 F100 ; Probe Z
+    G38.2 Z`+ moveZ +` F100 ; Probe Z
     G4 P0.4
-    G10 P0 L20 Z` + zoffset + ` ; Set Z` + zoffset + ` where ` + zoffset + ` is thickness of plate
+    G10 P0 L20 Z` + zoffset*unitcovert + ` ; Set Z` + zoffset*unitcovert + ` where ` + zoffset*unitcovert + ` is thickness of plate
     $J=G91G21Z5F1000 ; retract
     `
 
@@ -477,11 +423,8 @@ function runProbeNew() {
   }
 
   if (probemode.mode == "zplate") {
-    var zoffset = probemode.probe.zoffset // not *-1 as its offset in z pos
-    var thickness = $('#z0platethickness').val()
-    if (thickness != probemode.probe.zoffset) {
-      zoffset = thickness; // custom value from Advanced
-    }
+    var zoffset = probedata.zthickness
+
 
     var zmacro = `
     ; Header
@@ -489,9 +432,9 @@ function runProbeNew() {
     G10 P0 L20 Z0 ; zero out current location
 
     ; Probe Z
-    G38.2 Z-25 F100 ; Probe Z
+    G38.2 Z`+ moveZ+` F100 ; Probe Z
     G4 P0.4
-    G10 P0 L20 Z` + zoffset + ` ; Set Z` + zoffset + ` where ` + zoffset + ` is thickness of plate
+    G10 P0 L20 Z` + zoffset*unitcovert + ` ; Set Z` + zoffset*unitcovert + ` where ` + zoffset*unitcovert + ` is thickness of plate
     $J=G91G21Z5F1000 ; retract
     `
 
@@ -505,9 +448,9 @@ function runProbeNew() {
   }
 
   if (probemode.mode == "xyz") {
-    var xoffset = (probemode.probe.xoffset + probemode.endmilldia / 2) * -1 // *-1 to make negative as we are off to the left too far from x0
-    var yoffset = (probemode.probe.yoffset + probemode.endmilldia / 2) * -1 // *-1 to make negative as we are off to the front too far from y0
-    var zoffset = parseFloat(probemode.probe.zoffset) // not *-1 as its offset in z pos
+    var xoffset = (probedata.xoffset + probemode.endmilldia / 2) * -1 // *-1 to make negative as we are off to the left too far from x0
+    var yoffset = (probedata.yoffset + probemode.endmilldia / 2) * -1 // *-1 to make negative as we are off to the front too far from y0
+    var zoffset = parseFloat(probedata.zoffset) // not *-1 as its offset in z pos
 
     var xyzmacro = `
     ; Header
@@ -516,35 +459,35 @@ function runProbeNew() {
 
     ; Probe Z
     G0 X22.5 Y22.5 ; position to center of logo
-    G38.2 Z-25 F100 ; Probe Z
+    G38.2 Z`+ moveZ+` F100 ; Probe Z
     G4 P0.4
-    G10 P0 L20 Z` + zoffset + ` ; Set Z6 where 6 is thickness of plate
-    G0 Z` + (zoffset + 5) + ` ; retract
+    G10 P0 L20 Z` + zoffset*unitcovert + ` ; Set Z6 where 6 is thickness of plate
+    G0 Z` + (zoffset*unitcovert + 5) + ` ; retract
 
     ; Probe X
     G0 X-20 Y10 ; position to left side and move forward a little to be closer to center of edge
-    G0 Z` + (zoffset - 6) + ` ; drop down to be next to plate
+    G0 Z` + (zoffset*unitcovert - 6) + ` ; drop down to be next to plate
     G38.2 X25 F100 ; Probe X
     G4 P0.4
-    G10 P0 L20 X` + xoffset + ` ; set X as offset and half endmill diameter
-    G0 X` + (xoffset - 2).toFixed(3) + `
-    G0 Z` + (zoffset + 5) + ` ; retract
+    G10 P0 L20 X` + xoffset*unitcovert + ` ; set X as offset and half endmill diameter
+    G0 X` + (xoffset*unitcovert - 2) + `
+    G0 Z` + (zoffset*unitcovert + 5) + ` ; retract
 
     ; Probe Y
     G0 X15 Y-20 ; position to front side and move right a little to be closer to center of edge
-    G0 Z` + (zoffset - 6) + ` ; drop down to be next to plate
+    G0 Z` + (zoffset*unitcovert - 6) + ` ; drop down to be next to plate
     G38.2 Y25 F100 ; probe Y
     G4 P0.4
-    G10 P0 L20 Y` + yoffset + ` ; set Y as offset and half endmill diameter
-    G0 Y` + (yoffset - 2).toFixed(3) + `
-    G0 Z` + (zoffset + 5) + ` ; retract
+    G10 P0 L20 Y` + yoffset*unitcovert + ` ; set Y as offset and half endmill diameter
+    G0 Y` + (yoffset*unitcovert - 2)+ `
+    G0 Z` + (zoffset*unitcovert + 5) + ` ; retract
     G0 X0 Y0 ; return
     `
 
     if (stockoffset.x != 0 || stockoffset.y != 0) {
       xyzmacro += `
-      G10 P0 L20 X-` + stockoffset.x + ` ; set X stock offset
-      G10 P0 L20 Y-` + stockoffset.y + ` ; set Y stock offset
+      G10 P0 L20 X-` + stockoffset.x*unitcovert + ` ; set X stock offset
+      G10 P0 L20 Y-` + stockoffset.y*unitcovert + ` ; set Y stock offset
       G0 X0 Y0 ; return
       `
     }
@@ -597,19 +540,52 @@ function rippleEffect(el, color) {
 
 function editCustomProbe() {
   Metro.dialog.open('#editCustomProbeDialog');
-  $("#customProbeXOffset").val(customprobeplate.xoffset);
-  $("#customProbeYOffset").val(customprobeplate.yoffset);
-  $("#customProbeZOffset").val(customprobeplate.zoffset);
+  $("#customProbeXOffset").val(probedata.xoffset);
+  $("#customProbeYOffset").val(probedata.yoffset);
+  $("#customProbeZOffset").val(probedata.zoffset);
 }
 
 function saveEditCustomProbe() {
-  customprobeplate = {
+  probedata = {
     xoffset: parseFloat($("#customProbeXOffset").val()),
     yoffset: parseFloat($("#customProbeYOffset").val()),
     zoffset: parseFloat($("#customProbeZOffset").val()),
-    xyzmode: true, // stays
-    name: "Custom Z Touchplate", // stays
+    zthickness: parseFloat($("#z0platethickness").val()),
+    units: $("#probeUnitsButton").text(),
+
   };
-  localStorage.setItem('customProbe', JSON.stringify(customprobeplate));
+  localStorage.setItem('customProbe', JSON.stringify(probedata));
   probetype('custom');
+}
+
+
+
+function changeProbeUnits(){
+  
+
+  let unitValue = $("#probeUnitsButton").text()
+  let unitAppend = document.getElementsByClassName("append");
+
+  if (unitValue =='mm') {               // change to mm
+    $("#probeUnitsButton").text("inch")
+    unitcovert = 25.4;
+    for (let i = 0; i < unitAppend.length; i++) {
+      if(unitAppend[i].innerHTML=='mm'){
+        unitAppend[i].textContent = "inch";
+      }
+  ``}
+
+  } else {                                // change to inch
+    $("#probeUnitsButton").text("mm")
+    unitcovert = 1;
+    for (let i = 0; i < unitAppend.length; i++) {
+      if(unitAppend[i].innerHTML=='inch'){
+        unitAppend[i].textContent = "mm";
+      }
+    }
+  }
+
+
+  probedata.units = $("#probeUnitsButton").text()
+  localStorage.setItem('customProbe', JSON.stringify(probedata));
 }

@@ -408,21 +408,7 @@ function bindKeys() {
       });
     }
 
-    if (keyboardShortcuts.toInc.length) {
-      $(document).bind('keydown', keyboardShortcuts.toInc, function(e) {
-        e.preventDefault();
-        var newspeed = laststatus.machine.overrides.spindleOverride + 10
-        spindleOverride(newspeed)
-      });
-    }
 
-    if (keyboardShortcuts.toDec.length) {
-      $(document).bind('keydown', keyboardShortcuts.toDec, function(e) {
-        e.preventDefault();
-        var newspeed = laststatus.machine.overrides.spindleOverride - 10
-        spindleOverride(newspeed)
-      });
-    }
 
     if (keyboardShortcuts.jogSpeedM.length) {
       $(document).bind('keydown', keyboardShortcuts.jogSpeedM, function(e) {

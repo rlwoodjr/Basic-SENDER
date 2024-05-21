@@ -88,6 +88,8 @@ function installFirmware(){
     var filename= "Evolution5.hex"
   }else if($("#flashController").val() =="Revo"){
     var filename= "Revolution.hex"
+  }else if($("#flashController").val() =="Revo642"){
+    var filename= "Revolution642.hex"
   }else if($("#flashController").val() =="KL733"){
     var filename= "KL733.hex"
   }else if($("#flashController").val() =="KL744"){
@@ -100,7 +102,9 @@ function installFirmware(){
     var filename= "Quantum.hex"
   }else if($("#flashController").val()=="QuantumMax"){
     var filename = "QuantumMax.hex"
-  }
+  }else if($("#flashController").val()=="Erase Firmware"){
+  var filename = "eepromclear.hex"
+}
 
   var data = {
     port: $("#portUSB2").val(),
@@ -112,23 +116,3 @@ function installFirmware(){
     socket.emit('flashGrbl', data)
 
   } 
-
-
-// erase eeprom (eeprom.hex) on bobscnc controller before loading hex file
-function startFlash(){
-  var data = {
-    port: $("#portUSB2").val(),
-    file: "eepromclear.hex",
-    board: "uno",
-    customImg: false
-    }
-  
-    socket.emit('flashGrbl', data)
-
-  setTimeout(function() {
-    installFirmware(); // load firmware
-  }, 10000);
-
-}
-
-
