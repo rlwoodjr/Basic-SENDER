@@ -1,6 +1,6 @@
 {
   "name": "bobscnc-basic-sender",
-  "version": "1.1.27",
+  "version": "1.1.28",
   "license": "AGPL-3.0",
   "description": "Basic SENDER - CNC Machine Interface Software",
   "author": "github.com/rlwoodjr <bob@bobscnc.com>",
@@ -63,7 +63,7 @@
       "entitlementsInherit": "build/entitlements.mac.plist",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
-      "notarize": true,
+      "notarize": false,
       "target": {
         "target": "default",
         "arch": [
