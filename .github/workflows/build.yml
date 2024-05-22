@@ -30,7 +30,7 @@ jobs:
         # Import Apple API key for app notarization on macOS
         run: |
           mkdir -p ~/private_keys/
-          echo '${{ secrets.api_key }}' > ~/private_keys/AuthKey_${{ secrets.api_key_id }}.p8
+          echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
       - name: Electron Builder Action
         uses: OpenBuilds/action-electron-build@v1.9.0
         with:
@@ -40,8 +40,8 @@ jobs:
           release: true
           debugElectron: true
           # Used to Sign before notarizing with Notarize.js
-          mac_certs: ${{ secrets.mac_certs }}
-          mac_certs_password: ${{ secrets.mac_certs_password }}
+          mac_certs: ${{ secrets.MAC_CERTS }}
+          mac_certs_password: ${{ secrets.MAC_CERTS_PASSWORD }}
         env:
           #npm_config_verbose: true
           #npm_config_loglevel: verbose
@@ -51,5 +51,5 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # Required to authenticate Signing certs
-          API_KEY_ID: ${{ secrets.api_key_id }}
-          API_KEY_ISSUER_ID: ${{ secrets.api_key_issuer_id }}
+          API_KEY_ID: ${{ secrets.API_KEY_ID }}
+          API_KEY_ISSUER_ID: ${{ secrets.API_KEY_ISSUER_ID }}
