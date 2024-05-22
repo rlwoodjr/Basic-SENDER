@@ -23,6 +23,9 @@
 		<key>com.apple.security.files.user-selected.read-write</key>
 		<true/>
 		<key>com.apple.security.get-task-allow</key>
-    <true/>
+    	<true/>
 	</dict>
 </plist>
+
+
+
