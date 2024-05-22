@@ -1,6 +1,6 @@
 {
   "name": "bobscnc-basic-sender",
-  "version": "1.1.26",
+  "version": "1.1.27",
   "license": "AGPL-3.0",
   "description": "Basic SENDER - CNC Machine Interface Software",
   "author": "github.com/rlwoodjr <bob@bobscnc.com>",
@@ -73,7 +73,7 @@
       }
     },
     "icon": "build/sender.icns",
-    "appId": "bobscnc.sender",
+    "appId": "LD8F5MWN39.basicsender",
     "productName": "BobsCNC Basic SENDER",
     "asar": true,
     "nsis": {
