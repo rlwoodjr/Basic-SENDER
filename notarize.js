@@ -11,10 +11,11 @@ exports.default = async function notarizing(context) {
 
   try {
     await notarize({
-      appBundleId: 'com.bobscnc.LD8F5MWN39',
+      appBundleId: "app.bobscnc.basicsender",
       appPath: `${appOutDir}/${appName}.app`,
-      appleId: process.env.APPLEID,
-      appleIdPassword: process.env.APPLEIDPASS,
+      appleId: process.env.APPLE_ID,
+      appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD,
+      teamId: process.env.APPLE_TEAM_ID,
     });
 
     console.log("Notarization using BobsCNC custom notarize.js script: successful");
