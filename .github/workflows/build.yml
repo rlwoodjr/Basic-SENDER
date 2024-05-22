@@ -1,4 +1,3 @@
-
 name: Build/release
 
 on:
@@ -14,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-latest, windows-latest, ubuntu-latest]
 
     steps:
       - name: Check out Git repository
@@ -23,30 +22,34 @@ jobs:
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
+     
       - name: Prepare for app notarization
         if: startsWith(matrix.os, 'macos')
         # Import Apple API key for app notarization on macOS
         run: |
           mkdir -p ~/private_keys/
-          echo '${{ secrets.API_KEY }}' > ~/private_keys/AuthKey_${{ secrets.API_KEY_ID }}.p8
+          echo '${{ secrets.api_key }}' > ~/private_keys/AuthKey_${{ secrets.api_key_id }}.p8
       - name: Electron Builder Action
-        uses: samuelmeuli/action-electron-builder@v1.6.0
+        uses: OpenBuilds/action-electron-build@v1.9.0
         with:
           # GitHub token, automatically provided to the action
           # (No need to define this secret in the repo settings)
           github_token: ${{ secrets.github_token }}
-          mac_certs: ${{ secrets.MAC_CERTS }}
-          mac_certs_password: ${{ secrets.MAC_CERTS_PASSWORD }}
-          args: "-p always"
-
-
-          # If the commit is tagged with a version (e.g. "v1.0.0"),
-          # release the app after building
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
-
+          release: true
+          debugElectron: true
+          # Used to Sign before notarizing with Notarize.js
+          mac_certs: ${{ secrets.mac_certs }}
+          mac_certs_password: ${{ secrets.mac_certs_password }}
         env:
-          # macOS notarization API key
-          API_KEY_ID: ${{ secrets.API_KEY_ID }}
-          API_KEY_ISSUER_ID: ${{ secrets.API_KEY_ISSUER_ID }}
+          #npm_config_verbose: true
+          #npm_config_loglevel: verbose
+          # new MacOS notarize.js secrets (2024)
+          DEBUG: electron-builder # To debug electron-builder
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # Required to authenticate Signing certs
+          API_KEY_ID: ${{ secrets.api_key_id }}
+          API_KEY_ISSUER_ID: ${{ secrets.api_key_issuer_id }}
