@@ -48,7 +48,7 @@ jobs:
           # new MacOS notarize.js secrets (2024)
           DEBUG: electron-builder # To debug electron-builder
           APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # Required to authenticate Signing certs
           API_KEY_ID: ${{ secrets.api_key_id }}
