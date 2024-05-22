@@ -1,6 +1,6 @@
 {
   "name": "bobscnc-basic-sender",
-  "version": "1.1.39",
+  "version": "1.1.40",
   "license": "AGPL-3.0",
   "description": "Basic SENDER - CNC Machine Interface Software",
   "author": "github.com/rlwoodjr <bob@bobscnc.com>",
@@ -8,6 +8,7 @@
     "copyfiles": "^2.4.1",
     "electron": "^23.1.1",
     "electron-builder": "^24.9.1",
+    "electron-builder-notarize": "latest",
     "electron-rebuild": "^3.2.9",
     "ncp": "^2.0.0"
   },
@@ -17,7 +18,6 @@
     "detect-rpi": "^1.4.0",
     "directory-tree": "^2.3.1",
     "drivelist": "9.2.4",
-    "electron-builder-notarize": "2.2",
     "electron-updater": "^5.2.1",
     "evilscan": "^1.9.1",
     "express": "^4.18.1",
