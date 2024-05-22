@@ -16,7 +16,7 @@ exports.default = async function notarizing(context) {
 
   try {
     await notarize({
-      appBundleId: "app.bobscnc.control",
+      appBundleId: "com.bobscnc.LD8F5MWN39",
       appPath: `${appOutDir}/${appName}.app`,
       appleId: process.env.APPLE_ID,
       appleIdPassword: process.env.APPLE_APP_SPECIFIC_PASSWORD,
